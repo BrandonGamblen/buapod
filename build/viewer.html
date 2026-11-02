@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Lotus 1.0 · 3D model</title>
+<style>
+  html,body{margin:0;height:100%;background:#f4f1ea;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#2c2c2a;overflow:hidden}
+  #app{position:fixed;inset:0}
+  canvas{display:block;touch-action:none}
+  #bar{position:fixed;left:0;right:0;top:0;display:flex;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:6px;padding:8px;background:rgba(244,241,234,.92);border-bottom:1px solid #d3d1c7;z-index:5}
+  #bar button{flex:0 0 auto;white-space:nowrap;font:500 12px/1 inherit;padding:7px 8px;border-radius:8px;border:1px solid #b4b2a9;background:#fff;color:#2c2c2a;cursor:pointer}
+  #bar button.on{background:#633806;color:#fff;border-color:#633806}
+  #bar button.measure.on{background:#d85a30;border-color:#d85a30}
+  #panel{position:fixed;left:8px;right:8px;bottom:8px;background:rgba(255,255,255,.95);border:1px solid #d3d1c7;border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.45;z-index:5;max-height:24vh;overflow:auto;font-size:12px}
+  #panel b{font-weight:500}
+  #panel .row{display:flex;justify-content:space-between;gap:10px}
+  #hint{color:#5f5e5a}
+  .lbl{position:fixed;transform:translate(-50%,-50%);background:#fff;border:1px solid #444441;border-radius:6px;padding:2px 6px;font-size:12px;white-space:nowrap;pointer-events:none;z-index:4}
+  .lbl.dim{border-color:#185fa5;color:#0c447c}
+  .lbl.meas{border-color:#d85a30;color:#712b13;font-weight:500}
+  #legend span{display:inline-block;width:10px;height:10px;border-radius:2px;margin:0 4px 0 10px;vertical-align:-1px}
+  #legend span:first-child{margin-left:0}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="bar">
+  <button id="bMeasure" class="measure">Measure</button>
+  <button id="bClear">Clear</button>
+  <button id="bReset">Reset view</button>
+  <button id="tStrips" class="on">Ribs</button>
+  <button id="tCore" class="on">Walls</button>
+  <button id="tPattern" class="on">Pattern</button>
+  <button id="tLed" class="on">LED tubes</button>
+  <button id="tGill" class="on">Gill</button>
+  <button id="tJoints" class="on">Joints</button>
+  <button id="tDims" class="on">Dimensions</button>
+  <button id="tLabels" class="on">Labels</button>
+  <button id="tTop" class="on">Steel + brass</button>
+  <button id="tFloor" class="on">Floor</button>
+  <button id="tCtx">Pod context</button>
+  <button id="bCopies">Gores: 1</button>
+  <button id="tCush" class="on">Cushion</button>
+  <button id="c0" class="on">C1 foot L</button>
+  <button id="c1" class="on">C2 long L</button>
+  <button id="c2" class="on">C3 right</button>
+  <button id="c3" class="on">C4 foot R</button>
+  <button id="tSleep">Sleep mode</button>
+  <button id="tTable" class="on">Table</button>
+  <button id="bDoor">Door: closed</button>
+  <button id="bSun">Sun: off</button>
+  <button id="tPeople" class="on">People</button>
+  <button id="tFins" class="on">Rib fins</button>
+  <button id="bFins">Fin ring: 0°</button>
+  <button id="tFoot" class="on">Footing</button>
+  <button id="tRebar" class="on">Rebar</button>
+  <button id="tGround" class="on">Ground</button>
+  <button id="tDoorG" class="on">Door gore</button>
+</div>
+<div id="panel">
+  <div id="hint">Drag to turn, pinch or scroll to zoom. Tap <b>Measure</b>, then tap two points on the gore to get the distance between them.</div>
+  <div id="meas"></div>
+  <div id="legend" style="margin-top:6px;color:#5f5e5a">
+    <span style="background:#b07a3c"></span>Female strip<span style="background:#d8a464"></span>Male strip<span style="background:#f2b04a"></span>Translucent wall<span style="background:#6e5a48"></span>Seat<span style="background:#e39a3b"></span>Back wall (glows)<span style="background:#5a3412"></span>Hoops + diagonals<span style="background:#6fb4ff"></span>LED tube<span style="background:#c98b4a"></span>Gill<span style="background:#8a8278"></span>Cushion
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+// ---------- profile (inner edge of rib), metres; y = 0 at seat level, axis = Y ----------
+function cubic(p0,p1,p2,p3,n){const o=[];for(let k=0;k<=n;k++){const t=k/n,u=1-t;o.push([u*u*u*p0[0]+3*u*u*t*p1[0]+3*u*t*t*p2[0]+t*t*t*p3[0],u*u*u*p0[1]+3*u*u*t*p1[1]+3*u*t*t*p2[1]+t*t*t*p3[1]]);}return o;}
+function quad(p0,p1,p2,n){const o=[];for(let k=0;k<=n;k++){const t=k/n,u=1-t;o.push([u*u*p0[0]+2*u*t*p1[0]+t*t*p2[0],u*u*p0[1]+2*u*t*p1[1]+t*t*p2[1]]);}return o;}
+let raw=[];for(let k=0;k<=8;k++)raw.push([0.084,-1.10+0.20*k/8]); // bottom staves hugging the post
+for(let k=1;k<=12;k++)raw.push([0.084,-0.90+0.58*k/12]); // joint 1 (y -0.862) up the stave to joint 2
+for(let k=1;k<=12;k++)raw.push([0.084+0.316*k/12,-0.32]); // flat floor: joint 2 (centre) to joint 3 (heel)
+raw.push([0.40,-0.10]);
+for(let k=1;k<=24;k++){const a=Math.PI/2*k/24;raw.push([0.50-0.10*Math.cos(a),-0.10+0.10*Math.sin(a)]);} // knee: smooth 90 deg turn, radius 100 mm, no bulge
+raw.push([0.76,0.0]);
+raw.push([1.20,0.0]);
+raw=raw.concat(quad([1.20,0.0],[1.35,0.0],[1.35,0.15],16));
+raw.push([1.35,0.50]);
+raw=raw.concat(cubic([1.35,0.50],[1.35,0.82],[1.10,1.10],[0.78,1.28],40));
+raw=raw.concat(cubic([0.78,1.28],[0.45,1.44],[0.084,1.55],[0.084,1.80],48));
+for(let k=1;k<=8;k++)raw.push([0.084,1.80+0.20*k/8]); // vertical tip hugging the pipe
+let cut=raw;
+// resample by arc length
+const segL=[0];for(let i=1;i<cut.length;i++){segL.push(segL[i-1]+Math.hypot(cut[i][0]-cut[i-1][0],cut[i][1]-cut[i-1][1]));}
+const L=segL[segL.length-1],N=240;const R=[],Yv=[],S=[];
+for(let k=0;k<=N;k++){const s=L*k/N;let i=1;while(i<segL.length-1&&segL[i]<s)i++;const a=segL[i-1],b=segL[i];const t=b>a?(s-a)/(b-a):0;R.push(cut[i-1][0]+(cut[i][0]-cut[i-1][0])*t);Yv.push(cut[i-1][1]+(cut[i][1]-cut[i-1][1])*t);S.push(s);}
+// outward normals (towards exterior)
+const NR=[],NY=[];for(let k=0;k<=N;k++){const k0=Math.max(0,k-1),k1=Math.min(N,k+1);let tr=R[k1]-R[k0],ty=Yv[k1]-Yv[k0];const m=Math.hypot(tr,ty)||1;tr/=m;ty/=m;NR.push(ty);NY.push(-tr);}
+// zones
+let iShin0=0;for(let k=0;k<=N;k++){if(Yv[k]>=-0.42&&R[k]>0.39){iShin0=k;break;}}
+let iBotTip=0;for(let k=0;k<=N;k++){if(2*(Math.PI/16)*R[k]-0.045>=0.015){iBotTip=k;break;}}
+let iSeat=0;for(let k=0;k<=N;k++){if(Yv[k]>-0.01&&R[k]>=0.50){iSeat=k;break;}}
+let iBack=0;for(let k=iSeat;k<=N;k++){if(R[k]>=1.20){iBack=k;break;}}
+let iDome=0;for(let k=iBack;k<=N;k++){if(Yv[k]>=0.50&&R[k]>1.3){iDome=k;break;}}
+let iTip=N;for(let k=iDome;k<=N;k++){if(2*(Math.PI/16)*R[k]-0.045<0.015){iTip=k;break;}}
+const iTaper=Math.round(iDome+0.6*(iTip-iDome));
+const RIB=0.060, TH=Math.PI/16; // half of 22.5 deg
+function depths(k){ // [inner depth, outer depth] measured outward from rib inner edge
+  if(k<iShin0) return [RIB-0.019,RIB];
+  if(k<iSeat) return [0,0.030];
+  if(k<iBack) return [0,0.060];
+  if(k<iDome) return [0,RIB]; // back corner + back wall: 60 mm, flush with ribs both sides
+  if(k<iTaper) return [RIB-0.024,RIB];
+  const f=Math.min(1,(k-iTaper)/Math.max(1,iTip-iTaper)); const t=0.024-0.008*f; return [RIB-t,RIB];
+}
+function P3(r,y,th){return new THREE.Vector3(r*Math.sin(th),y,r*Math.cos(th));}
+function at(k,d,th){if(k%1!==0){const a=Math.floor(k),b=Math.min(N,a+1),t=k-a;const r=R[a]+(R[b]-R[a])*t,y=Yv[a]+(Yv[b]-Yv[a])*t,nr=NR[a]+(NR[b]-NR[a])*t,ny=NY[a]+(NY[b]-NY[a])*t;return P3(r+nr*d,y+ny*d,th);}return P3(R[k]+NR[k]*d,Yv[k]+NY[k]*d,th);}
+const rAt=k=>{const a=Math.floor(k),b=Math.min(N,a+1),t=k-a;return R[a]+(R[b]-R[a])*t;};
+const thA=k=>-TH+0.020/Math.max(rAt(k),0.12); // male side inner edge of core
+const thB=k=> TH-0.025/Math.max(rAt(k),0.12); // female side
+
+// ---------- scene ----------
+const app=document.getElementById('app');
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));renderer.shadowMap.type=THREE.PCFSoftShadowMap;app.appendChild(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0xf4f1ea);
+const camera=new THREE.PerspectiveCamera(40,1,0.01,50);
+const controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=0.1;
+scene.add(new THREE.HemisphereLight(0xffffff,0xb4b2a9,0.85));const dl=new THREE.DirectionalLight(0xffffff,0.7);dl.position.set(2,3,4);scene.add(dl);const dl2=new THREE.DirectionalLight(0xffffff,0.35);dl2.position.set(-3,1,-2);scene.add(dl2);
+
+const groups={strips:new THREE.Group(),core:new THREE.Group(),pattern:new THREE.Group(),led:new THREE.Group(),gill:new THREE.Group(),ctx:new THREE.Group(),dims:new THREE.Group(),top:new THREE.Group(),floor:new THREE.Group(),cushion:new THREE.Group(),sleep:new THREE.Group(),copies:new THREE.Group(),table:new THREE.Group(),joints:new THREE.Group()};
+const gore=new THREE.Group();['strips','core','pattern','led','gill'].forEach(n=>gore.add(groups[n]));scene.add(gore);scene.add(groups.ctx);scene.add(groups.dims);scene.add(groups.top);scene.add(groups.floor);scene.add(groups.cushion);scene.add(groups.sleep);scene.add(groups.copies);scene.add(groups.table);groups.sleep.visible=false;groups.ctx.visible=false;
+const pickables=[];
+
+function gridMesh(k0,k1,M,fn,mat){ // fn(k,j/M) -> Vector3
+  const pos=[],idx=[];const rows=k1-k0+1;
+  for(let k=k0;k<=k1;k++)for(let j=0;j<=M;j++){const v=fn(k,j/M);pos.push(v.x,v.y,v.z);}
+  for(let a=0;a<rows-1;a++)for(let j=0;j<M;j++){const p=a*(M+1)+j,q=p+M+1;idx.push(p,q,p+1,p+1,q,q+1);}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();
+  return new THREE.Mesh(g,mat);
+}
+function panel(k0,k1,mat){
+  const grp=new THREE.Group();const M=10;
+  const face=(which)=>gridMesh(k0,k1,M,(k,f)=>{const d=depths(k)[which];const th=thA(k)+(thB(k)-thA(k))*f;return at(k,d,th);},mat);
+  const inner=face(0),outer=face(1);grp.add(inner,outer);pickables.push(inner,outer);
+  // side walls along both edges
+  [0,1].forEach(e=>{const m=gridMesh(k0,k1,1,(k,f)=>{const d=depths(k)[0]+(depths(k)[1]-depths(k)[0])*f;return at(k,d,e?thB(k):thA(k));},mat);grp.add(m);pickables.push(m);});
+  return grp;
+}
+const matTrans=new THREE.MeshStandardMaterial({color:0xf2b04a,transparent:true,opacity:0.55,side:THREE.DoubleSide,roughness:0.5,depthWrite:false});
+const matSeat=new THREE.MeshStandardMaterial({color:0x6e5a48,side:THREE.DoubleSide,roughness:0.9});
+const matBack=new THREE.MeshStandardMaterial({color:0xe39a3b,transparent:true,opacity:0.6,side:THREE.DoubleSide,roughness:0.5,depthWrite:false}); // translucent honeycomb sandwich
+groups.core.add(panel(iBotTip,iShin0,new THREE.MeshStandardMaterial({color:0x9a9188,side:THREE.DoubleSide,roughness:0.9})));
+groups.core.add(panel(iShin0,iSeat,matTrans));
+groups.core.add(panel(iSeat,iBack,matSeat));
+groups.core.add(panel(iBack,iDome,matBack));
+groups.core.add(panel(iDome,iTip,matTrans));
+
+// ---------- strips (ribs) ----------
+function strip(thE,wSign,width,color,kA,kB){kA=kA??iBotTip;kB=kB??iTip;
+  const pos=[],idx=[];const c=new THREE.Vector3(Math.cos(thE),0,-Math.sin(thE)).multiplyScalar(wSign);
+  for(let k=kA;k<=kB;k++){const corners=[[0,0],[RIB,0],[RIB,width],[0,width]];for(const [d,w] of corners){const v=at(k,d,thE).add(c.clone().multiplyScalar(w));pos.push(v.x,v.y,v.z);}}
+  for(let k=0;k<kB-kA;k++)for(let s=0;s<4;s++){const a=k*4+s,b=k*4+(s+1)%4,a2=a+4,b2=b+4;idx.push(a,a2,b,b,a2,b2);}
+  idx.push(0,1,2,0,2,3);const e=(kB-kA)*4;idx.push(e,e+2,e+1,e,e+3,e+2);
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();
+  const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color,roughness:0.7,side:THREE.DoubleSide}));pickables.push(m);return m;
+}
+// concrete pedestal runs from the bottom up to joint 7 (top of the back-corner curve)
+const CONC=0xe6dcc6;let k7=iBotTip;for(let k=iBotTip;k<=N;k++){if(R[k]>=1.349&&Yv[k]>=0.15){k7=k;break;}}
+function tagC(m,ply){m.userData.concrete=true;m.userData.ply=ply;return m;}
+groups.strips.add(tagC(strip(TH,-1,0.025,CONC,iBotTip,k7),0xb07a3c));   // female, concrete part
+groups.strips.add(tagC(strip(-TH,1,0.020,CONC,iBotTip,k7),0xd8a464));   // male, concrete part
+groups.strips.add(strip(TH,-1,0.025,0xb07a3c,k7,iTip));   // female, 25 mm plywood
+groups.strips.add(strip(-TH,1,0.020,0xd8a464,k7,iTip));   // male, 20 mm plywood
+
+
+// ---------- tip wedge: both strips merge into one solid teak stave ----------
+(function(){const mat=new THREE.MeshStandardMaterial({color:0xa06a32,roughness:0.7,side:THREE.DoubleSide});const M=6;
+  const f=(d)=>gridMesh(iTip,N,M,(k,u)=>at(k,d,-TH+2*TH*u),mat);
+  const side=(th)=>gridMesh(iTip,N,1,(k,u)=>at(k,RIB*u,th),mat);
+  const parts=[f(0),f(RIB),side(-TH),side(TH)];
+  const top=gridMesh(N-1,N,M,(k,u)=>k===N?at(N,RIB,-TH+2*TH*u):at(N,0,-TH+2*TH*u),mat);parts.push(top);
+  parts.forEach(m=>{groups.strips.add(m);pickables.push(m);});
+  const matC=new THREE.MeshStandardMaterial({color:CONC,roughness:0.9,side:THREE.DoubleSide});
+  const fb=(d)=>gridMesh(0,iBotTip,M,(k,u)=>at(k,d,-TH+2*TH*u),matC);
+  const sb=(th)=>gridMesh(0,iBotTip,1,(k,u)=>at(k,RIB*u,th),matC);
+  const bot=gridMesh(0,1,M,(k,u)=>k===0?at(0,0,-TH+2*TH*u):at(0,RIB,-TH+2*TH*u),matC);
+  [fb(0),fb(RIB),sb(-TH),sb(TH),bot].forEach(m=>{groups.strips.add(m);pickables.push(m);});})();
+
+// ---------- pattern: hoops + diagonals in the dome ----------
+function domeKAtY(y){let best=iDome,bd=1e9;for(let k=iDome;k<=iTip;k++){const d=Math.abs(Yv[k]-y);if(d<bd){bd=d;best=k;}}return best;}
+function midDepth(k){const d=depths(Math.round(k));return (d[0]+d[1])/2;}
+function tube(pts,radius,mat){const curve=new THREE.CatmullRomCurve3(pts);const g=new THREE.TubeGeometry(curve,Math.max(8,pts.length*3),radius,6,false);const m=new THREE.Mesh(g,mat);pickables.push(m);return m;}
+const matHoop=new THREE.MeshStandardMaterial({color:0x5a3412,roughness:0.6});
+const matDiag=new THREE.MeshStandardMaterial({color:0x7a4a1c,roughness:0.6});
+const hoops=[0.50,0.68,0.86,1.04,1.22,1.40].filter(y=>y<=Yv[iTip]-0.05);
+const hk=hoops.map(domeKAtY);
+hk.forEach(k=>{const pts=[];for(let j=0;j<=12;j++){const th=thA(k)+(thB(k)-thA(k))*j/12;pts.push(at(k,midDepth(k),th));}groups.pattern.add(tube(pts,0.006,matHoop));});
+for(let h=0;h<hk.length;h++){
+  const k1=hk[h],k2=(h+1<hk.length)?hk[h+1]:iTip;
+  [[0,1],[1,0]].forEach(([f0,f1])=>{const pts=[];for(let j=0;j<=24;j++){const t=j/24;const k=k1+(k2-k1)*t;const f=f0+(f1-f0)*t;const th=thA(k)+(thB(k)-thA(k))*f;pts.push(at(k,midDepth(k),th));}groups.pattern.add(tube(pts,0.0045,matDiag));});
+}
+// shin zone diagonals (same pattern, lower)
+(function(){const k1=iShin0,k2=iSeat;[[0,1],[1,0]].forEach(([f0,f1])=>{for(let rep=0;rep<2;rep++){const a=k1+(k2-k1)*rep/2,b=k1+(k2-k1)*(rep+1)/2;const pts=[];for(let j=0;j<=24;j++){const t=j/24;const k=a+(b-a)*t;const f=f0+(f1-f0)*t;const th=thA(k)+(thB(k)-thA(k))*f;pts.push(at(k,0.020,th));}groups.pattern.add(tube(pts,0.0045,matDiag));}});})();
+
+// ---------- LED tubes ----------
+const matLed=new THREE.MeshStandardMaterial({color:0x6fb4ff,emissive:0x2a6fd1,emissiveIntensity:0.6,roughness:0.3});
+function ledRun(k0,k1,dfn){[0,1].forEach(e=>{const pts=[];for(let k=k0;k<=k1;k+=3){const th=e?thB(k)-0.008/R[k]:thA(k)+0.008/R[k];pts.push(at(k,dfn(k),th));}groups.led.add(tube(pts,0.006,matLed));});}
+ledRun(iShin0+2,iSeat-2,()=>0.011);                 // shin tube, 13-25 mm from outside of 30 mm wall
+ledRun(iDome+2,iTaper,()=>RIB-0.019);        // dome tube
+ledRun(iBack+2,iDome-2,()=>RIB-0.012);       // back corner + back wall tube, near the outer face
+
+// ---------- floor gill: plywood web under the floor, joint 1 to joint 3, curved to continue the shin into the stave ----------
+(function(){const A=[0.46,-0.32],B=[0.46,-0.56],C=[0.144,-0.62],D=[0.144,-0.862];const pts=[];
+  for(let i=0;i<=40;i++){const t=i/40,u=1-t;pts.push([u*u*u*A[0]+3*u*u*t*B[0]+3*u*t*t*C[0]+t*t*t*D[0],u*u*u*A[1]+3*u*u*t*B[1]+3*u*t*t*C[1]+t*t*t*D[1]]);}
+  pts.push([0.144,-0.38],[0.46,-0.38]);
+  const shape=new THREE.Shape();shape.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)shape.lineTo(pts[i][0],pts[i][1]);shape.lineTo(pts[0][0],pts[0][1]);
+  const g=new THREE.ExtrudeGeometry(shape,{depth:0.038,bevelEnabled:false});g.translate(0,0,-0.019);
+  const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:CONC,roughness:0.9,side:THREE.DoubleSide}));tagC(m,0xc98b4a);m.rotation.y=TH-Math.PI/2;groups.gill.add(m);pickables.push(m);})();
+// ---------- knee gill: rib widened outward from joint 3 to 4, curving to joint 5 (plywood, 2 x 19 mm) ----------
+(function(){const pts=[];const W=0.14;
+  let k3=0,k5=0;for(let k=0;k<=N;k++){if(R[k]>=0.399&&Yv[k]>=-0.321){k3=k;break;}}for(let k=k3;k<=N;k++){if(R[k]>=0.70&&Yv[k]>-0.01){k5=k;break;}}
+  const o=(k)=>[R[k]+NR[k]*RIB,Yv[k]+NY[k]*RIB];
+  const A=o(k3),B=[A[0]+W,-0.16],C=o(k5);
+  for(let i=0;i<=20;i++){const t=i/20,u=1-t;pts.push([u*u*A[0]+2*u*t*A[0]+t*t*B[0],u*u*A[1]+2*u*t*(-0.13)+t*t*B[1]]);}
+  for(let i=1;i<=10;i++){const t=i/10,u=1-t;const cx=B[0]+0.05,cy=-0.10;pts.push([u*u*B[0]+2*u*t*cx+t*t*C[0],u*u*B[1]+2*u*t*cy+t*t*C[1]]);}
+  for(let k=k5-1;k>k3;k--)pts.push(o(k));
+  const shape=new THREE.Shape();shape.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)shape.lineTo(pts[i][0],pts[i][1]);shape.lineTo(pts[0][0],pts[0][1]);
+  const g=new THREE.ExtrudeGeometry(shape,{depth:0.038,bevelEnabled:false});g.translate(0,0,-0.019);
+  const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:CONC,roughness:0.9,side:THREE.DoubleSide}));tagC(m,0xc98b4a);m.rotation.y=TH-Math.PI/2;groups.gill.add(m);pickables.push(m);})();
+
+
+// ---------- pod context ----------
+(function(){const ghost=new THREE.LineBasicMaterial({color:0x888780,transparent:true,opacity:0.45});
+  for(let i=0;i<16;i++){const th=TH+i*Math.PI/8;for(const d of [0,RIB]){const pts=[];for(let k=0;k<=N;k+=2)pts.push(at(k,d,th));groups.ctx.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),ghost));}}
+  const steel=new THREE.MeshStandardMaterial({color:0x888780,transparent:true,opacity:0.35,side:THREE.DoubleSide,depthWrite:false});
+  const drum=new THREE.Mesh(new THREE.CylinderGeometry(0.40,0.40,0.42,48,1,true),steel);drum.position.y=-0.21;groups.ctx.add(drum);
+  
+  })();
+
+// ---------- labels ----------
+const labels=[];let showLabels=true;
+function addLabel(text,pos,cls,group){const el=document.createElement('div');el.className='lbl '+cls;el.textContent=text;document.body.appendChild(el);const o={el,pos,group};labels.push(o);return o;}
+function fmt(m){const mm=m*1000;return Math.round(mm)+' mm ('+(mm/25.4).toFixed(1)+' in)';}
+
+// ---------- top hardware: pipe, flange, locking ring, cap cone, mast ----------
+(function(){const st=new THREE.MeshStandardMaterial({color:0x7d7c76,metalness:0.6,roughness:0.4,side:THREE.DoubleSide});
+  const yTop=Yv[N];
+  const PIPE_LO=1.62;const pipe=new THREE.Mesh(new THREE.CylinderGeometry(0.084,0.084,yTop-PIPE_LO,32,1,true),st);pipe.position.y=(yTop+PIPE_LO)/2; // trimmed up: ends just inside the tip
+  const iflange=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.13,0.012,40),st);iflange.position.y=PIPE_LO-0.006;groups.top.add(iflange); // inner end finished like the top flange
+  const flange=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.13,0.012,40),st);flange.position.y=yTop+0.006;
+  const ring=new THREE.Mesh(new THREE.CylinderGeometry(0.166,0.166,0.12,48,1,true),st);ring.position.y=yTop-0.08;
+  const ringIn=new THREE.Mesh(new THREE.CylinderGeometry(0.146,0.146,0.12,48,1,true),st);ringIn.position.y=yTop-0.08;
+  const capPts=[[0.172,yTop-0.03],[0.172,yTop+0.02],[0.14,yTop+0.06],[0.09,yTop+0.12],[0.055,yTop+0.20],[0.052,yTop+0.30],[0.046,yTop+0.38]].map(p=>new THREE.Vector2(p[0],p[1]));
+  const cap=new THREE.Mesh(new THREE.LatheGeometry(capPts,48),new THREE.MeshStandardMaterial({color:0x5f5e5a,metalness:0.4,roughness:0.5,side:THREE.DoubleSide}));
+  const mast=new THREE.Mesh(new THREE.CylinderGeometry(0.024,0.024,0.095,16),st);mast.position.y=yTop+0.38+0.0475; // stops 25 mm above the fin ring
+  const brass=new THREE.MeshStandardMaterial({color:0xc9a227,metalness:0.9,roughness:0.28});
+  const bt=new THREE.Mesh(new THREE.TorusGeometry(0.166,0.022,20,72),brass);bt.rotation.x=Math.PI/2;bt.position.y=yTop-0.14-0.015-0.022;
+  const yB=Yv[0];
+  const post=new THREE.Mesh(new THREE.CylinderGeometry(0.084,0.084,(-0.42)-(yB-0.6),24),st);post.position.y=((-0.42)+(yB-0.6))/2;
+  const bflange=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.13,0.012,40),st);bflange.position.y=yB-0.006;
+  const bring=new THREE.Mesh(new THREE.CylinderGeometry(0.166,0.166,0.12,48,1,true),st);bring.position.y=yB+0.06;
+  const bringIn=new THREE.Mesh(new THREE.CylinderGeometry(0.146,0.146,0.12,48,1,true),st);bringIn.position.y=yB+0.06;
+  const bb=new THREE.Mesh(new THREE.TorusGeometry(0.166,0.022,20,72),brass);bb.rotation.x=Math.PI/2;bb.position.y=yB+0.12+0.015+0.022;
+  [pipe,flange,ring,ringIn,cap,mast,bt].forEach(m=>{groups.top.add(m);pickables.push(m);});
+  addLabel('Brass ring',new THREE.Vector3(0.19,bt.position.y,0),'dim',groups.top);
+
+  addLabel('Pipe Ø168',new THREE.Vector3(0.084,1.6,0.0),'dim',groups.top);
+  addLabel('Locking ring',new THREE.Vector3(0.17,yTop-0.08,0.0),'dim',groups.top);
+  addLabel('Cap on flange',new THREE.Vector3(0.12,yTop+0.12,0.0),'dim',groups.top);
+  addLabel('Mast',new THREE.Vector3(0.03,yTop+0.9,0.0),'dim',groups.top);
+})();
+
+
+// preset dimensions from the gore's bounding box
+(function(){const box=new THREE.Box3().setFromObject(gore);const mn=box.min,mx=box.max;const mat=new THREE.LineBasicMaterial({color:0x185fa5});
+  function dim(a,b,text){groups.dims.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([a,b]),mat));addLabel(text,a.clone().add(b).multiplyScalar(0.5),'dim',groups.dims);}
+  const off=0.06;
+  dim(new THREE.Vector3(mx.x+off,mn.y,mx.z),new THREE.Vector3(mx.x+off,mx.y,mx.z),'Height '+fmt(mx.y-mn.y));
+  dim(new THREE.Vector3(mn.x,mn.y-off,mx.z),new THREE.Vector3(mx.x,mn.y-off,mx.z),'Width '+fmt(mx.x-mn.x));
+  dim(new THREE.Vector3(mx.x+off,mn.y-off,mn.z),new THREE.Vector3(mx.x+off,mn.y-off,mx.z),'Front to back '+fmt(mx.z-mn.z));
+  dim(at(iDome+40,0,TH),at(iDome+40,RIB,TH),'Rib 60 mm');
+})();
+
+
+// ---------- joint numbers on the rib at the female edge ----------
+(function(){scene.add(groups.joints);const kAt=(y0,kFrom)=>{for(let k=kFrom;k<=N;k++)if(Yv[k]>=y0&&R[k]<1.2)return k;return N;};
+  const k9=kAt(1.04,iDome),k10=kAt(1.686,k9);
+  const J=[[0.084,-0.862],[0.084,-0.32],[0.40,-0.32],[0.40,-0.10],[0.50,0],[1.20,0],[1.35,0.15],[1.35,0.50],[R[k9],Yv[k9]],[R[k10],Yv[k10]]];
+  const dot=new THREE.MeshBasicMaterial({color:0x2c2c2a});
+  J.forEach((p,i)=>{const v=P3(p[0],p[1],TH);const m=new THREE.Mesh(new THREE.SphereGeometry(0.012,10,8),dot);m.position.copy(v);groups.joints.add(m);addLabel(String(i+1),v.clone().add(new THREE.Vector3(0,0.045,0)),'meas',groups.joints);});
+  addLabel('Knee gill 3–4–5, concrete',P3(0.66,-0.26,TH),'dim',groups.joints);
+  addLabel('Floor gill 1–3, concrete',P3(0.30,-0.62,TH),'dim',groups.joints);
+})();
+// ---------- flat footwell floor + side hatch ----------
+(function(){
+  const deck=new THREE.Mesh(new THREE.CylinderGeometry(0.398,0.398,0.019,64),new THREE.MeshStandardMaterial({color:0xb07a3c,roughness:0.8}));deck.position.y=-0.32+0.0005-0.0095+0.019;
+  groups.floor.add(deck);pickables.push(deck);
+  addLabel('Floor deck 19 mm on flat floor',new THREE.Vector3(0,-0.29,0.30),'dim',groups.floor);
+})();
+
+
+
+const cushionPieces=[];
+// ---------- cushions (door gore at the back) ----------
+(function(){
+  const prof=[[0.43,-0.029],[0.46,-0.008],[0.50,0.0],[1.20,0.0],[1.30,0.03],[1.335,0.08],[1.34,0.10],[1.30,0.10],[0.52,0.10],[0.46,0.085],[0.43,0.05],[0.42,0.0],[0.43,-0.029]].map(p=>new THREE.Vector2(p[0],p[1]));
+  const fab=new THREE.MeshStandardMaterial({color:0x8a8278,roughness:0.95,side:THREE.DoubleSide});
+  const d0=Math.PI+TH; // door gore spans 180 deg +/- 11.25
+  // four pieces: splits on gore seams at +11.25 (behind the heads) and +/-123.75 (under the legs), ends at the door aisle
+  const fab2=new THREE.MeshStandardMaterial({color:0x7f776d,roughness:0.95,side:THREE.DoubleSide});
+  const D=Math.PI/180,g=0.003;
+  [[191.25,45],[236.25,135],[11.25,112.5],[123.75,45]].forEach(([st,len],i)=>{const m=new THREE.Mesh(new THREE.LatheGeometry(prof,Math.max(12,Math.round(len/3)),st*D+g,len*D-2*g),i%2?fab2:fab);groups.cushion.add(m);pickables.push(m);cushionPieces.push(m);});
+  addLabel('Cushion: 4 pieces, 100 mm',new THREE.Vector3(0.95*Math.sin(0.6),0.16,0.95*Math.cos(0.6)),'dim',groups.cushion);
+  // sleep mode: footwell lid cushion + door-aisle filler
+  const lid=new THREE.Mesh(new THREE.CylinderGeometry(0.47,0.47,0.10,64),fab);lid.position.y=0.05;
+  const filler=new THREE.Mesh(new THREE.LatheGeometry(prof,12,Math.PI-TH,2*TH),new THREE.MeshStandardMaterial({color:0x9a9188,roughness:0.95,side:THREE.DoubleSide}));
+  groups.sleep.add(lid);pickables.push(lid);
+  addLabel('Sleep mode: footwell lid; door gore stays clear for shoes',new THREE.Vector3(0,0.16,0),'dim',groups.sleep);
+})();
+
+// ---------- copies of the gore in final positions ----------
+const copyOrder=[1,-1,2,-2,3,-3,4,-4,5,-5,6,-6,7,-7];
+const copyObjs=copyOrder.map(i=>{const c=gore.clone(true);c.rotation.y=i*Math.PI/8;c.visible=false;groups.copies.add(c);c.traverse(o=>{if(o.isMesh)pickables.push(o);});return c;});
+const copySteps=[0,2,8,14];let copyStep=0;
+function setCopies(){const n=copySteps[copyStep];copyObjs.forEach((c,i)=>c.visible=i<n);const b=document.getElementById('bCopies');b.textContent='Gores: '+(n+1)+(doorRoot.visible?' + door':'');b.classList.toggle('on',n>0);}
+
+
+// ---------- coffee table: 0.20 m top on a removable rod ----------
+(function(){const teak=new THREE.MeshStandardMaterial({color:0x8a5a2b,roughness:0.6});const st=new THREE.MeshStandardMaterial({color:0x7d7c76,metalness:0.6,roughness:0.4});
+  const top=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.15,0.025,40),teak);top.position.y=0.40-0.0125;
+  const rod=new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.015,0.40+0.32-0.025,16),st);rod.position.y=(-0.32+0.375)/2;
+  groups.table.add(top,rod);pickables.push(top,rod);addLabel('Table Ø300',new THREE.Vector3(0,0.44,0),'dim',groups.table);})();
+
+
+// ---------- door gore at 180 deg ----------
+// fixed open frame below the floor, petal leaf from floor level to the header cut, fixed header above
+renderer.localClippingEnabled=true;
+const FLOOR=-0.32, CUT=1.30;
+const doorRoot=new THREE.Group();doorRoot.rotation.y=Math.PI;scene.add(doorRoot);
+function clippedClone(planes){const c=gore.clone(true);const pl=planes.map(q=>q.length===2?new THREE.Plane(new THREE.Vector3(0,q[0],0),q[1]):new THREE.Plane(new THREE.Vector3(q[0],q[1],q[2]),q[3]));
+  c.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.clippingPlanes=pl;pickables.push(o);}});c.userData.local=pl.map(q=>q.clone());c.userData.planes=pl;return c;}
+const doorHeader=clippedClone([[1,-CUT]]);doorRoot.add(doorHeader);
+const doorFrame=clippedClone([[-1,FLOOR]]);doorRoot.add(doorFrame);doorFrame.children[1].visible=false; // no panel below the floor: open frame
+const SPLIT_Y=0.30, SPLIT_Z=1.19; // leaves split where the seat meets the back corner (base of the back)
+const PIV=new THREE.Vector3(0,FLOOR,0.43+0.004); // bottom hinge on the cross piece
+const hingeB=new THREE.Group();hingeB.position.copy(PIV);doorRoot.add(hingeB);
+const leafB=clippedClone([[1,-FLOOR],[-1,SPLIT_Y],[0,0,-1,SPLIT_Z]]); // shin, knee, flat seat
+leafB.position.copy(PIV).multiplyScalar(-1);hingeB.add(leafB);
+const kH=domeKAtY(CUT);const PIVT=at(kH,RIB*0.5,0); // concealed top hinge: bolt through the middle of the rib depth at the header line
+const hingeT=new THREE.Group();hingeT.position.copy(PIVT);doorRoot.add(hingeT);
+const leafT=clippedClone([[1,-SPLIT_Y],[-1,CUT]]);leafT.position.copy(PIVT).multiplyScalar(-1);hingeT.add(leafT); // back wall + lower dome
+const leafT2=clippedClone([[1,-FLOOR],[-1,SPLIT_Y],[0,0,1,-SPLIT_Z]]);leafT2.position.copy(PIVT).multiplyScalar(-1);hingeT.add(leafT2); // back corner cove
+[leafB,leafT2].forEach(l=>l.traverse(o=>{if(o.isMesh&&o.userData.concrete)o.material.color.setHex(o.userData.ply);})); // door gore lower leaf stays plywood
+// fold-out middle tread (shown when the bottom leaf is down)
+const treadMat=new THREE.MeshStandardMaterial({color:0x8a5a2b,roughness:0.6});const treads=[0,1].map(()=>{const t=new THREE.Mesh(new THREE.BoxGeometry(0.30,0.028,0.26),treadMat);t.visible=false;hingeB.add(t);pickables.push(t);return t;});const tread={set visible(v){treads.forEach(t=>t.visible=v);}};
+(function(){const st=new THREE.MeshStandardMaterial({color:0x5f5e5a,metalness:0.7,roughness:0.35});const teak=new THREE.MeshStandardMaterial({color:0xa06a32,roughness:0.7});
+  const wB=2*Math.sin(TH)*0.43+0.03;
+  const cross=new THREE.Mesh(new THREE.BoxGeometry(2*Math.sin(TH)*0.43,0.045,0.06),teak);cross.position.set(0,FLOOR-0.0225,0.43-0.03);doorRoot.add(cross);
+  const pin=new THREE.Mesh(new THREE.CylinderGeometry(0.010,0.010,wB,16),st);pin.rotation.z=Math.PI/2;pin.position.copy(PIV);doorRoot.add(pin);
+  [-1,0,1].forEach(i=>{const x=i*(wB/2-0.012);
+    const down=new THREE.Mesh(new THREE.BoxGeometry(0.022,0.16,0.004),st);down.position.set(x,FLOOR-0.08,0.436);doorRoot.add(down);
+    const up=new THREE.Mesh(new THREE.BoxGeometry(0.022,0.16,0.004),st);up.position.set(x,0.08,0.002);hingeB.add(up);});
+  const rT=Math.hypot(PIVT.x,PIVT.z);const wT=2*Math.sin(TH)*rT+0.03;
+  const pinT=new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,wT+0.04,16),st);pinT.rotation.z=Math.PI/2;pinT.position.copy(PIVT);doorRoot.add(pinT);
+
+  addLabel('Bottom leaf: shin, knee, seat',new THREE.Vector3(0,FLOOR-0.05,0.75),'dim',groups.top);
+  addLabel('Top leaf: back + dome, swings up',new THREE.Vector3(0,CUT+0.05,1.0),'dim',groups.top);
+  addLabel('Open frame: reach into utility',new THREE.Vector3(0,-0.75,0.55),'dim',groups.top);
+  addLabel('Fixed header',new THREE.Vector3(0,CUT+0.25,0.75),'dim',groups.top);
+  addLabel('Ground',new THREE.Vector3(1.6,Yv[0]-0.014+0.01,1.6),'dim',groups.dims);
+})();
+const RIM=Yv[0]-0.012-0.002;        // crater rim of the footing, just below the bottom flange
+const GRADE=RIM;                   // finished ground level = top of the footing
+const GROUND=GRADE;
+function surfH(rho){return GRADE;} // footing is fully buried
+groups.footing=new THREE.Group();scene.add(groups.footing);
+groups.rebar=new THREE.Group();scene.add(groups.rebar);
+// ---------- footing: round pad + straight cone from the pad rim up to joint 1, poured with the pedestal ----------
+const FT={bot:GRADE-0.60,bed:0.05,padT:0.20,R:1.00,Rc:0.60,J1:[0.144,-0.862]};
+FT.padBot=FT.bot+FT.bed;FT.padTop=FT.padBot+FT.padT;
+(function(){const matC=new THREE.MeshStandardMaterial({color:0x4a4a47,roughness:0.95,side:THREE.DoubleSide,transparent:true,opacity:0.5,depthWrite:false});
+  const prof=[[0,FT.padBot],[FT.R,FT.padBot],[FT.R,FT.padTop],[FT.Rc,FT.padTop],[FT.J1[0],FT.J1[1]],[0.0,FT.J1[1]]].map(p=>new THREE.Vector2(p[0],p[1]));
+  const conc=new THREE.Mesh(new THREE.LatheGeometry(prof,72),matC);groups.footing.add(conc);pickables.push(conc);
+  {const om=new THREE.LineBasicMaterial({color:0x1f1f1e});const rg=(r,y)=>{const g=[];for(let i=0;i<=72;i++){const a=2*Math.PI*i/72;g.push(new THREE.Vector3(r*Math.sin(a),y,r*Math.cos(a)));}groups.footing.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(g),om));};
+   const rAt=(y)=>FT.Rc+(FT.J1[0]-FT.Rc)*(y-FT.padTop)/(FT.J1[1]-FT.padTop);
+   rg(FT.R,FT.padBot);rg(FT.R,FT.padTop);rg(FT.Rc,FT.padTop);rg(rAt(GRADE),GRADE+0.003);rg(FT.J1[0],FT.J1[1]);
+   for(let i=0;i<8;i++){const a=i*Math.PI/4+Math.PI/8;const v=(r,y)=>new THREE.Vector3(r*Math.sin(a),y,r*Math.cos(a));groups.footing.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([v(0,FT.padBot),v(FT.R,FT.padBot),v(FT.R,FT.padTop),v(FT.Rc,FT.padTop),v(FT.J1[0],FT.J1[1])]),om));}}
+  const sand=new THREE.Mesh(new THREE.CylinderGeometry(FT.R,FT.R,FT.bed,48),new THREE.MeshStandardMaterial({color:0xd9c79a,roughness:1}));sand.position.y=FT.bot+FT.bed/2;groups.footing.add(sand);
+  const lm=new THREE.LineBasicMaterial({color:0x633806});const ring=(y)=>{const g=[];for(let i=0;i<=64;i++){const a=2*Math.PI*i/64;g.push(new THREE.Vector3(FT.R*Math.sin(a),y,FT.R*Math.cos(a)));}groups.footing.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(g),lm));};
+  // hole outline omitted in the clean viewer
+  const rG=FT.Rc-(FT.Rc-FT.J1[0])*(GRADE-FT.padTop)/(FT.J1[1]-FT.padTop);
+  addLabel('Hole Ø2.00 m × 0.60 m deep',new THREE.Vector3(FT.R+0.05,GRADE-0.20,0.0),'dim',groups.footing);
+  addLabel('Pad Ø2.00 m × 200 mm, on 50 mm sand',new THREE.Vector3(0,FT.padBot-0.08,FT.R+0.05),'dim',groups.footing);
+  addLabel('Cone: Ø1.20 m on pad → Ø'+Math.round(rG*2000)+' mm at ground → Ø288 mm at joint 1',new THREE.Vector3(-0.55,GRADE-0.05,0.3),'dim',groups.footing);
+})();
+// ---------- rebar: DB10 (deformed) dark, RB9 (round) hoops lighter ----------
+(function(){const db=new THREE.MeshStandardMaterial({color:0xb5562a,metalness:0.3,roughness:0.6});const rb=new THREE.MeshStandardMaterial({color:0xe0a050,metalness:0.3,roughness:0.6});
+  const bar=(pts,mat)=>{const v=pts.map(p=>p.isVector3?p:new THREE.Vector3(p[0],p[1],p[2]));for(let i=0;i<v.length-1;i++){const a=v[i],b=v[i+1];const L=a.distanceTo(b);if(L<1e-4)continue;const m=new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,L,6),mat);m.position.copy(a).add(b).multiplyScalar(0.5);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),b.clone().sub(a).normalize());groups.rebar.add(m);}};
+  const P=(r,y,th)=>new THREE.Vector3(r*Math.sin(th),y,r*Math.cos(th));
+  const door=(th)=>{let d=Math.abs(((th-Math.PI)%(2*Math.PI)+3*Math.PI)%(2*Math.PI)-Math.PI);return d<TH-1e-3;};
+  // pad grid, DB10 @200 both ways, 75 mm cover
+  const yA=FT.padBot+0.075,yB2=yA+0.012,rr=FT.R-0.075;
+  for(let i=0;i<10;i++){const c=-0.9+i*0.2;const h=Math.sqrt(Math.max(0,rr*rr-c*c));bar([[-h,yA,c],[h,yA,c]],db);bar([[c,yB2,-h],[c,yB2,h]],db);}
+  // core: 4 DB10, hooked onto the pad grid, up to just under the floor
+  for(let q=0;q<4;q++){const a=q*Math.PI/2+Math.PI/4,r=0.06;bar([P(r+0.15,yB2+0.012,a),P(r,yB2+0.012,a),P(r,-0.36,a)],db);}
+  // cone bars: 8 DB10 parallel to the cone face, 50 mm inside it
+  const n=new THREE.Vector2(FT.J1[1]-FT.padTop,-(FT.J1[0]-FT.R)).normalize();
+  for(let q=0;q<8;q++){const a=q*Math.PI/4+TH;bar([P(FT.Rc+0.25,yB2+0.012,a),P(FT.Rc-0.05,yB2+0.012,a),P(FT.Rc-0.05,FT.padTop-0.04,a),P(FT.J1[0]-0.05,FT.J1[1]+0.02,a),P(FT.J1[0]-0.05,FT.J1[1]+0.42,a)],db);} // hooked onto the pad grid; 400 mm lap up into the floor gills
+  // fin bars: one per rib, 45 mm inside the top surface, floor centre -> seat end (joints 2-3-4-5-6)
+  let k2=0;for(let k=0;k<=N;k++){if(Yv[k]>=-0.321&&R[k]>=0.12){k2=k;break;}}let k6=k2;for(let k=k2;k<=N;k++){if(R[k]>=1.20&&Yv[k]>-0.01){k6=k;break;}}
+  for(let j=0;j<16;j++){const th=TH+j*2*TH;const pts=[];for(let k=k2;k<=k6;k+=2)pts.push(at(k,0.045,th));bar(pts,db);}
+  // seat radials: one per gore centre, r 0.60 -> 1.38, 45 mm under the seat top (none in the door gore)
+  for(let j=0;j<16;j++){const th=j*2*TH;if(door(th))continue;bar([P(0.60,-0.045,th),P(1.38,-0.045,th)],db);}
+  // hoops (RB9): two in the seat rim, one in the shin ring, two in the cone; open across the door gore
+  const hoop=(r,y)=>{const pts=[];for(let i=0;i<=120;i++){const a=Math.PI+TH+(2*Math.PI-2*TH)*i/120;pts.push(P(r,y,a));}bar(pts,rb);};
+  hoop(1.32,-0.05);hoop(1.36,0.10);hoop(0.44,-0.20);
+  const coneR=(y)=>FT.Rc+(FT.J1[0]-FT.Rc)*(y-FT.padTop)/(FT.J1[1]-FT.padTop)-0.06;
+  [FT.padTop+0.12,GRADE+0.10].forEach(y=>{const pts=[];for(let i=0;i<=72;i++){pts.push(P(coneR(y),y,2*Math.PI*i/72));}bar(pts,rb);});
+  addLabel('DB10 fin bars ×16, seat radials ×15',P(0.95,0.02,TH),'dim',groups.rebar);
+  addLabel('RB9 hoops: seat rim ×2, shin ring, cone ×2',P(1.36,0.16,Math.PI/2),'dim',groups.rebar);
+  addLabel('Pad grid DB10 @200 both ways; core ×4 and cone ×8 DB10 hooked onto it',new THREE.Vector3(0.55,FT.padTop+0.05,-0.55),'dim',groups.rebar);
+})();
+const groundMesh=new THREE.Mesh(new THREE.CircleGeometry(3.2,64),new THREE.MeshStandardMaterial({color:0x5f8f3e,roughness:1,side:THREE.DoubleSide,transparent:true,opacity:0.35,depthWrite:false}));groundMesh.rotation.x=-Math.PI/2;groundMesh.position.y=GRADE;scene.add(groundMesh);
+// bottom leaf opens until its lowest point touches the ground
+let OPEN_B=0;(function(){const pts=[];for(let k=0;k<=N;k++){if(Yv[k]>=FLOOR&&Yv[k]<=SPLIT_Y&&R[k]<SPLIT_Z){for(const d of [0,RIB]){const r=R[k]+NR[k]*d,y=Yv[k]+NY[k]*d;if(r<SPLIT_Z+0.01)pts.push([r-PIV.z,y-PIV.y]);}}}
+  for(let a=0;a<=Math.PI;a+=0.005){let hit=false;for(const [dz,dy] of pts){const y2=dy*Math.cos(a)-dz*Math.sin(a),z2=dy*Math.sin(a)+dz*Math.cos(a);if(PIV.y+y2<surfH(PIV.z+z2)+0.01){hit=true;break;}}if(hit){OPEN_B=a-0.005;break;}OPEN_B=a;}})();
+// panic push bar on the inside of the top leaf, chest height for a seated person
+(function(){const st=new THREE.MeshStandardMaterial({color:0xb8b6ae,metalness:0.8,roughness:0.25});const red=new THREE.MeshStandardMaterial({color:0xc0392b,roughness:0.5});
+  const barPos=new THREE.Vector3(0,0.45,1.24).sub(PIVT);
+  const bar=new THREE.Mesh(new THREE.CylinderGeometry(0.016,0.016,0.36,20),red);bar.rotation.z=Math.PI/2;bar.position.copy(barPos);hingeT.add(bar);pickables.push(bar);
+  [-1,1].forEach(i=>{const post=new THREE.Mesh(new THREE.BoxGeometry(0.02,0.03,0.10),st);post.position.copy(barPos).add(new THREE.Vector3(i*0.16,0,0.05));hingeT.add(post);});
+  const lk=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.04,0.04),red);lk.position.set(0,FLOOR-0.12,0.44);doorRoot.add(lk);
+  addLabel('Push bar: panic release, top leaf',new THREE.Vector3(0,0.55,1.15),'dim',groups.top);
+  addLabel('Bottom latch: 2-step, load-locked',new THREE.Vector3(0,FLOOR-0.18,0.65),'dim',groups.top);})();
+let doorT=0,doorGoal=0;const OPEN_T=1.75; // top leaf up 100 deg
+function placeTread(){const a=OPEN_B;const c=Math.cos(a),sn=Math.sin(a);
+  // outer face of the lowered leaf, in hinge coordinates rotated to world-level (dy up, dz outward)
+  const face=[];for(let k=0;k<=N;k++){if(Yv[k]>=FLOOR&&Yv[k]<=SPLIT_Y&&R[k]<SPLIT_Z){const r=R[k]+NR[k]*RIB,y=Yv[k]+NY[k]*RIB;const dz=r-PIV.z,dy=y-PIV.y;face.push([dy*c-dz*sn,dy*sn+dz*c]);}}
+  const zAt=h=>{let z=-1;face.forEach(([y2,z2])=>{if(Math.abs(y2-h)<0.04&&z2>z)z=z2;});return z;};
+  const H=GRADE-PIV.y;const hs=[H*2/3,H*1/3];                 // lower tread, upper tread (relative to hinge)
+  const zL=zAt(hs[0]),zU=zAt(hs[1]);const DL=0.26;const noseL=zL+DL;const DU=Math.max(0.10,Math.min(0.20,noseL-0.10-zU)); // upper nose stays 100 mm behind the lower nose
+  [[hs[0],zL,DL],[hs[1],zU,DU]].forEach(([ty,zf,D],i)=>{const t=treads[i];t.scale.z=D/0.26;const tz=zf+D/2;
+    t.position.set(0,ty*c+tz*sn,-ty*sn+tz*c);t.rotation.x=-a;});
+  TREAD_INFO={rise:-H/3,DL,DU,noseL,noseU:zU+DU};}
+let TREAD_INFO=null;
+function updateDoor(){doorT+=(doorGoal-doorT)*0.07;hingeB.rotation.x=OPEN_B*doorT;hingeT.rotation.x=-OPEN_T*doorT;tread.visible=doorT>0.85;doorRoot.updateMatrixWorld(true);
+  [doorHeader,doorFrame,leafB,leafT,leafT2].forEach(c=>{c.userData.planes.forEach((q,i)=>q.copy(c.userData.local[i]).applyMatrix4(c.matrixWorld));});}
+placeTread();
+
+const stS=new THREE.MeshStandardMaterial({color:0x7d7c76,metalness:0.7,roughness:0.35});
+// ---------- alternative 2: solid rib fins, root fixed at the back-seat curve, tops tied to a rotating ring on the mast ----------
+// turning the ring drags each fin's wide upper edge sideways over the gore; the blade bends/twists between fixed root and ring
+groups.fins=new THREE.Group();scene.add(groups.fins);
+const FIN={beta:0,goal:0,last:-1,RING:new THREE.Vector2(0.20,Yv[N]+0.45),WTOP:0.60};const fins=[];
+(function(){const pts=[];for(let k=0;k<=N;k+=2){if(Yv[k]<0.10)continue;if(!(R[k]>1.20||Yv[k]>0.5))continue;const r=R[k]+0.065*NR[k],y=Yv[k]+0.065*NY[k];if(r<0.30)break;pts.push({r,y,nr:NR[k],ny:NY[k]});}
+  const n=pts.length;pts.forEach((q,i)=>{const sp=i/(n-1);const w=0.025+(FIN.WTOP-0.025)*Math.pow(sp,2.5);const b=Math.pow(sp,8);
+    q.s=sp;q.or=(1-b)*(q.r+w*q.nr)+b*FIN.RING.x;q.oy=(1-b)*(q.y+w*q.ny)+b*FIN.RING.y;});
+  FIN.pts=pts;const mat=new THREE.MeshStandardMaterial({color:0xd8c7a3,roughness:1,side:THREE.DoubleSide});
+  const edge=new THREE.MeshStandardMaterial({color:0x8a6a45,roughness:0.6});
+  for(let j=0;j<16;j++){const ph=Math.PI+(11.25+22.5*j)*Math.PI/180;const door=(j===15);
+    const i0=0;const cnt=n-i0;   // door-gore fin: full length; the opening leaf pushes it back on its spring-loaded top link
+    const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(new Float32Array(cnt*2*3),3));
+    const idx=[];for(let i=0;i<cnt-1;i++){const a=2*i;idx.push(a,a+1,a+2,a+1,a+3,a+2);}geo.setIndex(idx);
+    const m=new THREE.Mesh(geo,mat);m.castShadow=true;groups.fins.add(m);pickables.push(m);fins.push({ph,geo,i0,m});}
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(FIN.RING.x,0.018,12,48),stS);ring.rotation.x=Math.PI/2;ring.position.y=FIN.RING.y;groups.fins.add(ring);
+  
+  // drive sleeve: one tube over the mast, from the fin-ring hub down through the cap and top pipe into the cabin, ending in a hand wheel
+  const WHEEL_Y=1.50,TOPY=FIN.RING.y+0.025;const sleeve=new THREE.Mesh(new THREE.CylinderGeometry(0.040,0.040,TOPY-WHEEL_Y,24),stS);sleeve.position.y=(TOPY+WHEEL_Y)/2; // one diameter, top to wheel
+  const capD=new THREE.Mesh(new THREE.CylinderGeometry(0.040,0.040,0.004,24),stS);capD.position.y=TOPY;groups.fins.add(capD);groups.fins.add(sleeve);pickables.push(sleeve);
+  const wheel=new THREE.Group();wheel.position.y=WHEEL_Y;groups.fins.add(wheel);FIN.wheel=wheel;
+  const rim=new THREE.Mesh(new THREE.TorusGeometry(FIN.RING.x,0.018,12,48),stS); // mirror of the fin ring
+  rim.rotation.x=Math.PI/2;wheel.add(rim);pickables.push(rim);
+  for(let i=0;i<8;i++){const a=i*Math.PI/4+Math.PI/8;const L=FIN.RING.x-0.040;const sp=new THREE.Mesh(new THREE.CylinderGeometry(0.007,0.007,L,8),stS);sp.rotation.z=Math.PI/2;sp.rotation.y=a;sp.position.set((0.040+L/2)*Math.cos(a),0,-(0.040+L/2)*Math.sin(a));wheel.add(sp);}
+  const knob=new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,0.07,10),new THREE.MeshStandardMaterial({color:0x6b4a2b}));knob.position.set(0.20,-0.035,0);wheel.add(knob);
+  addLabel('Hand wheel Ø400, mirror of fin ring',new THREE.Vector3(0.25,WHEEL_Y-0.12,0),'dim',groups.fins);
+  const spokes=new THREE.Group();spokes.position.y=FIN.RING.y;groups.fins.add(spokes);FIN.spokes=spokes;   // hub on a bearing around the mast, 8 spokes out to the ring
+  for(let i=0;i<8;i++){const a=i*Math.PI/4+Math.PI/8;const L=FIN.RING.x-0.040;const sp=new THREE.Mesh(new THREE.CylinderGeometry(0.007,0.007,L,8),stS);sp.rotation.z=Math.PI/2;sp.position.set((0.040+L/2)*Math.cos(a),0,-(0.040+L/2)*Math.sin(a));sp.rotation.y=a;spokes.add(sp);}
+  
+  addLabel('Rotating fin ring on mast',new THREE.Vector3(0.35,FIN.RING.y+0.12,0),'dim',groups.fins);
+  addLabel('Fin root 25 mm, fixed at bottom of back corner',new THREE.Vector3(1.75,0.15,0.5),'dim',groups.fins);
+})();
+
+// door fin options: 1 = spring-linked fin pushed by the door, 2 = no fin, door gore laid up with extra cloth plies (denser)
+let doorFinOpt=1; // fin kept on the door-gore rib; door gore at normal opacity
+const doorPieces=[doorHeader,leafT,leafT2,leafB,doorFrame];
+doorPieces.forEach(pc=>pc.traverse(o=>{if(o.isMesh&&o.material.transparent){o.userData.op=o.material.opacity;o.userData.col=o.material.color.clone();}}));
+function setDoorFin(){fins[15].m.visible=doorFinOpt===1;doorPieces.forEach(pc=>pc.traverse(o=>{if(o.isMesh&&o.userData.op!==undefined){o.material.opacity=doorFinOpt===2?0.95:o.userData.op;o.material.color.copy(o.userData.col).multiplyScalar(doorFinOpt===2?0.72:1);}}));
+}
+setDoorFin();
+function updateFins(){FIN.beta+=(FIN.goal-FIN.beta)*0.08;const key=Math.round(FIN.beta*100)+'/'+Math.round(doorT*200);if(key===FIN.last)return;FIN.last=key;const B=FIN.beta*Math.PI/180;if(FIN.spokes)FIN.spokes.rotation.y=B;if(FIN.wheel)FIN.wheel.rotation.y=B;
+  fins.forEach(({ph,geo,i0},j)=>{ // door-side fins: the open top leaf slides along them and pushes them back; their spring-loaded top links give way
+    const lim=(15-j)*22.5;const Bj=(j===14&&FIN.beta>lim)?(FIN.beta+(lim-FIN.beta)*doorT)*Math.PI/180:B;const P=geo.attributes.position;for(let i=i0;i<FIN.pts.length;i++){const q=FIN.pts[i];const pa=ph+Bj*q.s;const o=(i-i0)*2;
+    P.setXYZ(o,q.r*Math.sin(ph),q.y,q.r*Math.cos(ph));P.setXYZ(o+1,q.or*Math.sin(pa),q.oy,q.or*Math.cos(pa));}
+    if(j===15&&doorT>0.001){ // door fin rides on the top leaf: rotate about the header hinge, fully below the header, fading to fixed at the ring (spring-loaded top link)
+      const A0=-OPEN_T*doorT;for(let v=0;v<P.count;v++){const x=P.getX(v),y=P.getY(v),z=P.getZ(v);const w=y<=CUT?1:Math.max(0,1-(y-CUT)/(FIN.RING.y-CUT));if(w<=0)continue;
+        const a=A0*w,c=Math.cos(a),sn=Math.sin(a);const ly=y-PIVT.y,lz=-z-PIVT.z;const ny=ly*c-lz*sn,nz=ly*sn+lz*c;P.setXYZ(v,x,ny+PIVT.y,-(nz+PIVT.z));}}
+    P.needsUpdate=true;geo.computeVertexNormals();geo.computeBoundingSphere();});}
+// ---------- scale figures: 171 cm man, 158 cm woman, architectural silhouettes that turn to face the camera ----------
+groups.people=new THREE.Group();scene.add(groups.people);const figures=[];
+(function(){
+  const MAN=[[0,1],[.035,.995],[.055,.975],[.062,.945],[.058,.915],[.045,.885],[.032,.87],[.03,.86],[.032,.845],[.06,.835],[.1,.825],[.125,.812],[.135,.795],[.138,.77],[.142,.72],[.145,.66],[.148,.625],[.152,.58],[.15,.52],[.155,.5],[.153,.46],[.14,.445],[.128,.455],[.126,.49],[.122,.52],[.118,.58],[.112,.63],[.108,.68],[.104,.73],[.1,.745],[.098,.72],[.092,.66],[.088,.6],[.092,.55],[.098,.5],[.096,.45],[.088,.38],[.082,.3],[.078,.28],[.076,.22],[.078,.18],[.068,.1],[.058,.045],[.068,.02],[.07,0],[.03,0],[.032,.03],[.03,.08],[.028,.16],[.026,.27],[.02,.38],[.012,.46],[0,.475]];
+  const WOMAN=[[0,1],[.04,.993],[.06,.972],[.066,.94],[.068,.9],[.064,.865],[.05,.858],[.034,.86],[.034,.845],[.06,.833],[.09,.826],[.112,.812],[.12,.79],[.122,.765],[.126,.71],[.13,.655],[.133,.62],[.136,.57],[.135,.52],[.14,.5],[.138,.46],[.125,.448],[.115,.458],[.112,.49],[.108,.52],[.104,.58],[.099,.63],[.096,.68],[.092,.735],[.09,.75],[.088,.72],[.08,.67],[.074,.625],[.088,.57],[.104,.52],[.105,.48],[.098,.42],[.085,.33],[.075,.28],[.072,.22],[.072,.18],[.06,.1],[.05,.045],[.06,.015],[.062,0],[.025,0],[.026,.03],[.024,.08],[.022,.16],[.02,.27],[.014,.38],[.008,.45],[0,.465]];
+  const mk=(half,H,col)=>{const pts=half.map(([x,y])=>new THREE.Vector2(x*H,y*H));const left=half.slice(1,-1).reverse().map(([x,y])=>new THREE.Vector2(-x*H,y*H));
+    const sh=new THREE.Shape([...pts,...left.reverse().reverse()]);
+    const full=[...half.map(([x,y])=>new THREE.Vector2(x*H,y*H)),...half.slice(0,-1).reverse().map(([x,y])=>new THREE.Vector2(-x*H,y*H))];
+    const m=new THREE.Mesh(new THREE.ShapeGeometry(new THREE.Shape(full),12),new THREE.MeshBasicMaterial({color:col,side:THREE.DoubleSide}));
+    const g=new THREE.Group();g.add(m);return g;};
+  const man=mk(MAN,1.71,0x5a5955),woman=mk(WOMAN,1.58,0x7d746c);
+  man.position.set(0.35,GRADE+0.002,-2.45);woman.position.set(-0.30,GRADE+0.002,-2.45);[man,woman].forEach(f=>{groups.people.add(f);figures.push(f);});
+  addLabel('171 cm',new THREE.Vector3(0.35,GRADE+1.80,-2.45),'dim',groups.people);
+  addLabel('158 cm',new THREE.Vector3(-0.30,GRADE+1.67,-2.45),'dim',groups.people);
+})();
+function faceFigures(){figures.forEach(f=>{f.rotation.y=Math.atan2(camera.position.x-f.position.x,camera.position.z-f.position.z);});}
+// ---------- sun: Umphang ~16.0 N, solar time; door assumed facing north ----------
+const SUNS=[null,['Dec 21',9.5],['Dec 21',12],['Dec 21',14.5],['Mar 20',8.5],['Mar 20',12],['Mar 20',15.5],['Jun 21',8.5],['Jun 21',12],['Jun 21',15.5]];let sunI=0;
+const sunDL=new THREE.DirectionalLight(0xfff4e0,1.1);sunDL.castShadow=true;sunDL.shadow.mapSize.set(2048,2048);sunDL.shadow.bias=-0.0008;sunDL.shadow.normalBias=0.03;Object.assign(sunDL.shadow.camera,{left:-5,right:5,top:5,bottom:-5,near:0.5,far:30});sunDL.visible=false;scene.add(sunDL);scene.add(sunDL.target);
+function sunPos(doy,hr){const lat=16.0*Math.PI/180,dec=23.44*Math.PI/180*Math.sin(2*Math.PI*(284+doy)/365),H=(hr-12)*15*Math.PI/180;
+  const alt=Math.asin(Math.sin(lat)*Math.sin(dec)+Math.cos(lat)*Math.cos(dec)*Math.cos(H));const azS=Math.atan2(Math.sin(H),Math.cos(H)*Math.sin(lat)-Math.tan(dec)*Math.cos(lat));return {alt,A:azS+Math.PI};}
+function setSun(){const st=SUNS[sunI];const btn=$('bSun');
+  if(!st){sunDL.visible=false;dl.visible=true;dl2.visible=true;renderer.shadowMap.enabled=false;btn.textContent='Sun: off';btn.classList.remove('on');return;}
+  const doy={ 'Dec 21':355,'Mar 20':79,'Jun 21':172}[st[0]];const {alt,A}=sunPos(doy,st[1]);
+  const dir=new THREE.Vector3(Math.cos(alt)*Math.sin(A),Math.sin(alt),-Math.cos(alt)*Math.cos(A));
+  sunDL.position.copy(dir.multiplyScalar(12));sunDL.visible=true;dl.visible=false;dl2.visible=false;renderer.shadowMap.enabled=true;
+  scene.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.material.needsUpdate=true;}});
+  const h=Math.floor(st[1]),mi=Math.round((st[1]-h)*60);btn.textContent=`Sun: ${st[0]} ${h}:${String(mi).padStart(2,'0')} · ${Math.round(alt*180/Math.PI)}°`;btn.classList.add('on');}
+
+
+// ---------- camera ----------
+const box0=new THREE.Box3().setFromObject(gore).union(new THREE.Box3().setFromObject(groups.top));const center=box0.getCenter(new THREE.Vector3());
+const size0=box0.getSize(new THREE.Vector3()).length();
+function resetView(){controls.target.copy(center).add(new THREE.Vector3(0,0.15,0));const fov=camera.fov*Math.PI/180;let dist=size0/(2*Math.tan(fov/2))*0.85;if(camera.aspect<1)dist/=Math.max(camera.aspect,0.62);const dir=new THREE.Vector3(0.55,0.3,0.78).normalize();camera.position.copy(center).add(dir.multiplyScalar(dist));controls.update();}
+// view set after resize
+
+// ---------- measuring ----------
+let measuring=false,pending=null;const marks=new THREE.Group();scene.add(marks);const results=[];
+const ray=new THREE.Raycaster();const mouse=new THREE.Vector2();let downXY=null,downT=0;
+renderer.domElement.addEventListener('pointerdown',e=>{downXY=[e.clientX,e.clientY];downT=performance.now();});
+renderer.domElement.addEventListener('pointerup',e=>{if(!measuring||!downXY)return;if(Math.hypot(e.clientX-downXY[0],e.clientY-downXY[1])>6||performance.now()-downT>500)return;
+  const r=renderer.domElement.getBoundingClientRect();mouse.x=((e.clientX-r.left)/r.width)*2-1;mouse.y=-((e.clientY-r.top)/r.height)*2+1;ray.setFromCamera(mouse,camera);
+  const vis=pickables.filter(m=>{let o=m;while(o){if(!o.visible)return false;o=o.parent;}return true;});
+  const hit=ray.intersectObjects(vis,false)[0];if(!hit)return;const p=hit.point.clone();
+  const dot=new THREE.Mesh(new THREE.SphereGeometry(0.009,12,12),new THREE.MeshBasicMaterial({color:0xd85a30}));dot.position.copy(p);marks.add(dot);
+  if(!pending){pending=p;}else{const ln=new THREE.Line(new THREE.BufferGeometry().setFromPoints([pending,p]),new THREE.LineBasicMaterial({color:0xd85a30}));marks.add(ln);const d=pending.distanceTo(p);addLabel(fmt(d),pending.clone().add(p).multiplyScalar(0.5),'meas',marks);results.unshift(d);pending=null;showResults();}
+});
+function showResults(){const el=document.getElementById('meas');if(!results.length){el.innerHTML='';return;}el.innerHTML='<div style="margin-top:6px"><b>Measurements</b></div>'+results.slice(0,6).map((d,i)=>'<div class="row"><span>'+(results.length-i)+'</span><span>'+fmt(d)+'</span></div>').join('');}
+function clearMarks(){while(marks.children.length)marks.remove(marks.children[0]);for(let i=labels.length-1;i>=0;i--){if(labels[i].group===marks){labels[i].el.remove();labels.splice(i,1);}}pending=null;results.length=0;showResults();}
+
+// ---------- UI ----------
+const $=id=>document.getElementById(id);
+$('bMeasure').onclick=()=>{measuring=!measuring;$('bMeasure').classList.toggle('on',measuring);$('hint').innerHTML=measuring?'<b>Measuring:</b> tap two points on the gore. Drag still turns the model.':'Drag to turn, pinch or scroll to zoom. Tap <b>Measure</b>, then tap two points on the gore to get the distance between them.';};
+$('bClear').onclick=clearMarks;$('tPeople').onclick=()=>{groups.people.visible=!groups.people.visible;$('tPeople').classList.toggle('on',groups.people.visible);};$('tFins').onclick=()=>{groups.fins.visible=!groups.fins.visible;$('tFins').classList.toggle('on',groups.fins.visible);};$('bFins').onclick=()=>{FIN.goal=(FIN.goal+15)%60;$('bFins').textContent='Fin ring: '+FIN.goal+'°';$('bFins').classList.toggle('on',FIN.goal>0);};$('bSun').onclick=()=>{sunI=(sunI+1)%SUNS.length;setSun();};$('tRebar').onclick=()=>{groups.rebar.visible=!groups.rebar.visible;$('tRebar').classList.toggle('on',groups.rebar.visible);};$('tFoot').onclick=()=>{groups.footing.visible=!groups.footing.visible;$('tFoot').classList.toggle('on',groups.footing.visible);};$('tGround').onclick=()=>{groundMesh.visible=!groundMesh.visible;$('tGround').classList.toggle('on',groundMesh.visible);};$('tLabels').onclick=()=>{showLabels=!showLabels;$('tLabels').classList.toggle('on',showLabels);};$('bDoor').onclick=()=>{doorGoal=doorGoal?0:1;$('bDoor').textContent=doorGoal?'Door: open':'Door: closed';$('bDoor').classList.toggle('on',!!doorGoal);if(doorGoal){groups.sleep.visible=false;$('tSleep').classList.remove('on');}};$('tDoorG').onclick=()=>{doorRoot.visible=!doorRoot.visible;$('tDoorG').classList.toggle('on',doorRoot.visible);setCopies();};[0,1,2,3].forEach(i=>{$('c'+i).onclick=()=>{const m=cushionPieces[i];m.visible=!m.visible;$('c'+i).classList.toggle('on',m.visible);};});$('tSleep').onclick=()=>{groups.sleep.visible=!groups.sleep.visible;$('tSleep').classList.toggle('on',groups.sleep.visible);groups.table.visible=!groups.sleep.visible;$('tTable').classList.toggle('on',groups.table.visible);};$('bCopies').onclick=()=>{copyStep=(copyStep+1)%copySteps.length;setCopies();};$('bReset').onclick=resetView;
+const goreParts=['strips','core','pattern','led','gill'];
+[['tStrips','strips'],['tCore','core'],['tPattern','pattern'],['tLed','led'],['tGill','gill'],['tDims','dims'],['tCtx','ctx'],['tTop','top'],['tFloor','floor'],['tCush','cushion'],['tTable','table'],['tJoints','joints']].forEach(([b,g])=>{$(b).onclick=()=>{groups[g].visible=!groups[g].visible;$(b).classList.toggle('on',groups[g].visible);const gi=goreParts.indexOf(g);if(gi>=0)copyObjs.concat([doorHeader,leafB,leafT,leafT2,doorFrame]).forEach(c=>{c.children[gi].visible=groups[g].visible&&!(c===doorFrame&&gi===1);});};});
+
+// ---------- loop ----------
+function resize(){const w=window.innerWidth,h=window.innerHeight;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
+window.addEventListener('resize',resize);resize();resetView();
+const tmp=new THREE.Vector3();
+function tick(){requestAnimationFrame(tick);controls.update();updateDoor();updateFins();faceFigures();renderer.render(scene,camera);
+  const w=window.innerWidth,h=window.innerHeight;
+  for(const o of labels){let vis=showLabels||o.group===marks||o.group===groups.joints,g=o.group;while(g){if(!g.visible){vis=false;break;}g=g.parent;}tmp.copy(o.pos).project(camera);if(!vis||tmp.z>1){o.el.style.display='none';continue;}o.el.style.display='block';o.el.style.left=((tmp.x+1)/2*w)+'px';o.el.style.top=((1-tmp.y)/2*h)+'px';}
+}
+tick();
+})();
+</script>
+<script>
+window.addEventListener('load',()=>{setTimeout(()=>{
+ const off=id=>{const e=document.getElementById(id);if(e&&e.classList.contains('on'))e.click();};
+ ['tLabels','tJoints','tRebar','tDims','tTable'].forEach(off);
+ const c=document.getElementById('bCopies');for(let i=0;i<8&&c&&!/15/.test(c.textContent);i++)c.click();
+ document.querySelectorAll('#bar button').forEach(b=>{if(b.id!=='bDoor'&&b.id!=='bFins')b.style.display='none';});
+ const p=document.getElementById('panel');if(p)p.style.display='none';
+ const fb=document.getElementById('bFins');if(fb){const set=()=>{fb.textContent='Twist fins: '+(fb.textContent.match(/\d+°/)||['0°'])[0];};set();fb.addEventListener('click',()=>setTimeout(set,0));}
+ document.querySelectorAll('.lbl').forEach(e=>e.style.visibility='hidden');
+},300);});
+</script>
+</body>
+</html>
