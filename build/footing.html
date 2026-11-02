@@ -1,191 +1,204 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Lotus 1.0 · Footing</title>
 <style>
-:root{--ink:#2c2c2a;--quiet:#5f5e5a;--line:#d8d4c9;--bg:#f7f4ee;--card:#fff;--accent:#8a4b12;--ok:#2f6b2a;--wait:#8a5a0b}
+:root{--ink:#2c2c2a;--quiet:#5f5e5a;--line:#d8d4c9;--bg:#f7f4ee;--card:#fff;--accent:#8a4b12}
 *{box-sizing:border-box}
-body{margin:0;font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans Thai",sans-serif;color:var(--ink);background:var(--bg)}
+body{margin:0;font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans Thai",sans-serif;color:var(--ink);background:var(--bg)}
 nav{position:sticky;top:0;z-index:5;background:rgba(247,244,238,.96);border-bottom:1px solid var(--line);display:flex;gap:4px;overflow-x:auto;padding:8px 12px}
 nav a{flex:0 0 auto;padding:6px 10px;border-radius:8px;color:var(--ink);text-decoration:none;font-size:14px;font-weight:500}
-nav a:hover{background:#ece6d9}
-main{max-width:860px;margin:0 auto;padding:12px 16px 64px}
-section{padding-top:24px}
-h1{font-size:28px;line-height:1.2;margin:16px 0 4px}
-h2{font-size:22px;margin:8px 0 8px;border-top:1px solid var(--line);padding-top:20px}
-h3{font-size:17px;margin:20px 0 6px}
-p{margin:8px 0}
-.lead{font-size:18px;color:var(--quiet)}
-.hero{width:100%;border-radius:12px;display:block;background:#f1ece2}
-.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:12px 0}
-.fact{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
-.fact b{display:block;font-size:20px}
-.fact span{font-size:13px;color:var(--quiet)}
-.btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:10px;padding:10px 16px;font-weight:600;margin:8px 0}
-.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:8px 0}
-table{border-collapse:collapse;width:100%;font-size:14px;background:var(--card)}
-th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
-th{background:#efe9dc;font-weight:600}
-td.n{text-align:right;white-space:nowrap}
-tr.tot td{font-weight:700;background:#f4efe3}
-.step{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:10px 0}
-.step h3{margin:0 0 4px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.chip{font-size:12px;font-weight:600;border-radius:999px;padding:2px 8px}
-.ready{background:#e3f0dd;color:var(--ok)}
-.wait{background:#f7ead3;color:var(--wait)}
-.zone{display:grid;grid-template-columns:96px 1fr;gap:4px 12px;font-size:15px}
-.zone div:nth-child(odd){font-weight:600}
-ol,ul{padding-left:22px;margin:6px 0}
-li{margin:3px 0}
-.patwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}.pat{width:100%;min-width:680px;height:auto;background:var(--card);border:1px solid var(--line);border-radius:12px}
-.lang{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:6px 0}
-.lang button{font:inherit;font-size:14px;padding:6px 14px;border:0;background:var(--card);cursor:pointer}
+nav a:hover,nav a.here{background:#ece6d9}
+main{max-width:900px;margin:0 auto;padding:8px 12px 40px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0}
+.top h1{font-size:20px;margin:0}
+.top .stage{font-size:14px;color:var(--quiet)}
+.lang{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.lang button{font:inherit;font-size:14px;padding:5px 12px;border:0;background:var(--card);cursor:pointer}
 .lang button.on{background:var(--accent);color:#fff}
-[data-l="th"]{display:none}
-body.th [data-l="th"]{display:block}
-body.th [data-l="en"]{display:none}
+.fig{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.fig svg{display:block;width:100%;height:auto}
+.bar{display:flex;align-items:center;gap:10px;margin:10px 0}
+.arrow{flex:0 0 auto;width:56px;height:56px;border-radius:50%;border:0;background:var(--accent);color:#fff;font-size:26px;cursor:pointer;line-height:56px;padding:0}
+.arrow:disabled{background:#d8d4c9;cursor:default}
+.mid{flex:1;text-align:center}
+.count{font-weight:700}
+.dots{display:flex;justify-content:center;gap:6px;margin-top:4px}
+.dots button{width:12px;height:12px;border-radius:50%;border:0;padding:0;background:#d8d4c9;cursor:pointer}
+.dots button.on{background:var(--accent)}
+.txt{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px}
+.txt h2{font-size:20px;margin:0 0 6px}
+.txt ol,.txt ul{padding-left:22px;margin:6px 0}
+.txt li{margin:4px 0}
 .note{font-size:14px;color:var(--quiet)}
-.check li{list-style:none;margin-left:-18px}
-.check li::before{content:"☐ ";}
-footer{font-size:13px;color:var(--quiet);border-top:1px solid var(--line);margin-top:32px;padding-top:12px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:12px 0}.card{display:block;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;color:var(--ink);text-decoration:none}.card b{display:block;font-size:17px}.card span{font-size:13px}.viewer{width:100%;height:72vh;min-height:420px;border:0;border-radius:12px;background:#f1ece2;display:block}nav a.here{background:#ece6d9}</style></head><body><nav><a href="index.html">Home</a><a href="footing.html" class="here">Footing</a><a href="pedestal.html">Pedestal</a><a href="dome.html">Dome</a><a href="fins.html">Fins</a><a href="door.html">Door</a><a href="cushions.html">Cushions</a><a href="electronics.html">Electronics</a></nav><main><h1>1 · Footing <span class="chip ready">Ready</span></h1>
-<p class="lead">A round concrete pad 2.00 m across, 0.60 m below the ground, with a concrete cone rising from it to carry the pedestal.</p>
-<div class="facts">
-<div class="fact"><b>Ø2.00 m</b><span>hole and pad diameter</span></div>
-<div class="fact"><b>0.60 m</b><span>hole depth</span></div>
-<div class="fact"><b>0.92 m³</b><span>concrete</span></div>
-</div>
-<h2>Steps</h2>
-<div class="step"><h3>1. Mark out and dig</h3><p>Mark the centre. Dig a round hole <b>Ø2.00 m × 0.60 m deep</b>, flat bottom on firm subsoil. Topsoil must be under 0.40 m; if the bottom is soft, dig until it is firm. Lay 50 mm of sand and compact it.</p></div>
-<div class="step"><h3>2. Make the forms</h3><p>A tarp liner for the pad and a sewn tarp cone bag: pattern and steps below, in English and Thai.</p></div>
-<div class="step"><h3>3. Tie the rebar</h3><p>Tie with wire at crossings; never weld. Every bar at least 40 mm from the surface, 75 mm under the pad, on spacers. Bar list below.</p></div>
-<div class="step"><h3>4. Pour</h3><ol><li>Pour the pad 200 mm thick inside the liner. Level it.</li><li>Within 2–3 hours, slide the cone bag over the rebar neck and tie its straps to the liner edge.</li><li>Fill in layers: 150 mm of concrete inside the cone, then 150 mm of compacted soil outside. Repeat up to ground level (3 rounds).</li><li>Keep exposed concrete wet for 2 days. The cone above the ground is poured with the pedestal.</li></ol></div>
-<section id="footing">
-<h2>Forms: pad liner and cone bag</h2>
-<div class="lang"><button id="bEn" class="on" onclick="setL('en')">English</button><button id="bTh" onclick="setL('th')">ภาษาไทย</button></div>
+a{color:var(--accent)}
+</style></head><body>
+<nav><a href="index.html">Home</a><a href="footing.html" class="here">Footing</a><a href="pedestal.html">Pedestal</a><a href="dome.html">Dome</a><a href="fins.html">Fins</a><a href="door.html">Door</a><a href="cushions.html">Cushions</a><a href="electronics.html">Electronics</a></nav>
+<main>
+<div class="top"><div><h1 id="h1">1 · Footing</h1><div class="stage" id="stage"></div></div>
+<div class="lang"><button id="bEn" class="on" onclick="setL('en')">English</button><button id="bTh" onclick="setL('th')">ภาษาไทย</button></div></div>
+<div class="fig" id="fig"></div>
+<div class="bar"><button class="arrow" id="prev" aria-label="Previous step">&#9664;</button>
+<div class="mid"><div class="count" id="count"></div><div class="dots" id="dots"></div></div>
+<button class="arrow" id="next" aria-label="Next step">&#9654;</button></div>
+<div class="txt" id="txt"></div>
+<p class="note" id="foot"></p>
+</main>
+<script>
+let LANG='en';
+const K=()=>innerWidth<600?1.7:1;
+addEventListener('resize',()=>render());
+const T=(en,th)=>LANG==='th'?th:en;
+// ---------- drawing helpers ----------
+const C={grass:'#d6e4bc',grassE:'#9fb878',top:'#7d5f40',sub:'#b48a5a',sand:'#ecd79c',str:'#c0392b',peg:'#9a6a37',dim:'#1d6fb8',lime:'#ffffff',ink:'#2c2c2a',q:'#5f5e5a',bg:'#fbfaf6'};
+function tx(x,y,s,o={}){const a=o.a||'middle',sz=(o.s||15)*K(),w=o.w||400,f=o.f||C.ink;
+ const halo=o.nohalo?'':`stroke="${C.bg}" stroke-width="4" paint-order="stroke" stroke-linejoin="round"`;
+ return `<text x="${x}" y="${y}" text-anchor="${a}" font-size="${sz}" font-weight="${w}" fill="${f}" ${halo}>${s}</text>`}
+function arrowHead(x,y,ang){const a=8,b=4,c=Math.cos(ang),s=Math.sin(ang);
+ return `<path d="M${x} ${y} L${x-a*c+b*s} ${y-a*s-b*c} L${x-a*c-b*s} ${y-a*s+b*c}Z" fill="${C.dim}"/>`}
+function dim(x1,y1,x2,y2,label,o={}){const ang=Math.atan2(y2-y1,x2-x1);
+ let s=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${C.dim}" stroke-width="1.6"/>`+arrowHead(x2,y2,ang)+arrowHead(x1,y1,ang+Math.PI);
+ const mx=(x1+x2)/2+(o.dx||0),my=(y1+y2)/2+(o.dy||0);
+ return s+tx(mx,my,label,{f:C.dim,w:700,s:o.s||15,a:o.a})}
+function peg(x,gy,h=40,notch=false){let s=`<rect x="${x-5}" y="${gy-h}" width="10" height="${h+28}" fill="${C.peg}"/><path d="M${x-5} ${gy+28} L${x} ${gy+40} L${x+5} ${gy+28}Z" fill="${C.peg}"/>`;
+ if(notch)s+=`<line x1="${x-8}" y1="${gy-32}" x2="${x+8}" y2="${gy-32}" stroke="${C.ink}" stroke-width="2"/>`;return s}
+function pegTop(x,y){return `<rect x="${x-7}" y="${y-7}" width="14" height="14" fill="${C.peg}" stroke="#6e4a22" stroke-width="1.5"/>`}
+function svg(body,h=470){return `<svg viewBox="0 0 800 ${h}" xmlns="http://www.w3.org/2000/svg" role="img" font-family="inherit"><rect width="800" height="${h}" fill="${C.bg}"/>${body}</svg>`}
+function viewTag(t){return tx(16,28,t,{a:'start',s:14,w:700,f:C.q})}
+// plan view: 3.5 m square, centre (400,240), 114 px per m
+const P={cx:400,cy:240,S:114};
+function planBase(o={}){const {cx,cy,S}=P,h=1.75*S;let s=`<rect x="0" y="0" width="800" height="470" fill="${C.grass}"/>`;
+ for(let i=0;i<60;i++){const x=(i*137)%800,y=(i*89)%470;s+=`<path d="M${x} ${y} l3 -8 l3 8" stroke="${C.grassE}" fill="none" stroke-width="1.2"/>`}
+ s+=`<rect x="${cx-h}" y="${cy-h}" width="${2*h}" height="${2*h}" fill="#e3cfa8" stroke="${C.q}" stroke-dasharray="7 5" stroke-width="1.5"/>`;
+ return s}
+// section view: grade y=200, centre x=400, 160 px per m
+const X={cx:400,gy:200,S:160};
+function secBase(o={}){const {cx,gy,S}=X;const d=(o.depth||0)*S,r=S;let s='';
+ s+=`<rect x="0" y="${gy}" width="800" height="${470-gy}" fill="${C.sub}"/><rect x="0" y="${gy}" width="800" height="${0.25*S}" fill="${C.top}"/>`;
+ s+=`<rect x="0" y="${gy-6}" width="800" height="6" fill="${C.grassE}"/>`;
+ if(d>0){s+=`<rect x="${cx-r}" y="${gy-6}" width="${2*r}" height="${d+6}" fill="${C.bg}"/>`;
+  s+=`<path d="M${cx-r} ${gy} V${gy+d} H${cx+r} V${gy}" fill="none" stroke="#5b4026" stroke-width="2"/>`}
+ if(o.sand){const t=0.05*S;s+=`<rect x="${cx-r}" y="${gy+d-t}" width="${2*r}" height="${t}" fill="${C.sand}" stroke="#a88f4a" stroke-width="1"/>`}
+ return s}
+function strings(y){return `<line x1="160" y1="${y}" x2="640" y2="${y}" stroke="${C.str}" stroke-width="2"/>`}
+// ---------- steps ----------
+const steps=[
+{t:()=>T('Clear the ground and mark the centre','ถางพื้นที่และปักหมุดกลาง'),
+ fig:()=>{const {cx,cy,S}=P;let s=planBase();
+  s+=`<circle cx="${cx}" cy="${cy}" r="9" fill="${C.peg}" stroke="#6e4a22" stroke-width="2"/>`;
+  s+=tx(cx,cy-20,T('Centre stake','หมุดกลาง'),{w:700});
+  s+=dim(cx-1.75*S,cy+1.75*S+24,cx+1.75*S,cy+1.75*S+24,'3,500',{dy:-8});
+  s+=dim(cx+1.75*S+24,cy-1.75*S,cx+1.75*S+24,cy+1.75*S,'3,500',{dx:30});
+  s+=tx(cx,cy+70,T('Cleared: no plants, no roots','ถางหญ้าและรากไม้ออกหมด'),{f:C.q});
+  s+=viewTag(T('PLAN (from above) · mm','มุมมองจากด้านบน · มม.'));return svg(s)},
+ body:()=>T(`<ol><li>Clear plants and roots from a square <b>3,500 × 3,500 mm</b>.</li><li>Drive 1 wooden stake at the point where the centre of Lotus 1.0 will stand.</li></ol>
+<p class="note">Tools for the whole hole: 5 wooden stakes, 20 m string, line level, plumb bob, tape measure, lime powder, hoe, shovel, digging bar, hand tamper. Sand: buy 0.20 m³ (0.157 m³ after tamping).</p>`,
+`<ol><li>ถางหญ้าและรากไม้ออก เป็นพื้นที่สี่เหลี่ยม <b>3,500 × 3,500 มม.</b></li><li>ตอกหมุดไม้ 1 ตัว ตรงจุดศูนย์กลางของ Lotus 1.0</li></ol>
+<p class="note">อุปกรณ์สำหรับขุดหลุม: หมุดไม้ 5 ตัว เชือก 20 ม. ระดับน้ำแขวนเชือก ลูกดิ่ง ตลับเมตร ปูนขาว จอบ พลั่ว ชะแลง ที่กระทุ้งดิน ทราย: ซื้อ 0.20 ลบ.ม. (เหลือ 0.157 ลบ.ม. หลังกระทุ้งแน่น)</p>`)},
 
-<div data-l="en">
-<p>Two tarp forms: a <b>liner</b> laid in the hole for the pad, and a <b>cone bag</b> that slides over the rebar neck. The cone bag's straps tie to the liner's edge, so the two make one closed envelope and nothing needs anchoring.</p>
-<div class="tablewrap"><table>
-<tr><th>Part</th><th>Measurement</th></tr>
-<tr><td>Hole</td><td>Ø2,000 mm, 600 mm deep</td></tr>
-<tr><td>Pad liner</td><td>2 strips of tarp, overlapped 300 mm, standing 150 mm above the pad top</td></tr>
-<tr><td>Cone bag</td><td>1,200 mm across at the bottom, 288 mm at the top, 600 mm tall</td></tr>
-<tr><td>Straps</td><td>500 mm long, from the cone base to the pad rim</td></tr>
-</table></div>
-<h3>Tools</h3>
-<p>1 tarp roll (Gartene, HomePro SKU 1121822), sack needle, nylon twine, 60 cable ties, 24 spacer wheels, 1 m stiff wire, marker, scissors, lighter, nail, 1.7 m string, tape measure, 50 kg for the test.</p>
-</div>
-<div data-l="th">
-<p>แบบผ้าใบ 2 ชิ้น: <b>ผ้าปูก้นหลุม</b> สำหรับฐาน และ <b>ถุงกรวย</b> สวมครอบเหล็กคอ สายรัดของถุงกรวยมัดกับขอบผ้าปู ไม่ต้องยึดเพิ่ม</p>
-<div class="tablewrap"><table>
-<tr><th>ส่วน</th><th>ขนาด</th></tr>
-<tr><td>หลุม</td><td>กว้าง 2,000 มม. ลึก 600 มม.</td></tr>
-<tr><td>ผ้าปูก้นหลุม</td><td>ผ้าใบ 2 ผืน ซ้อนกัน 300 มม. สูงเกินหน้าฐาน 150 มม.</td></tr>
-<tr><td>ถุงกรวย</td><td>ก้นกว้าง 1,200 มม. ปากบน 288 มม. สูง 600 มม.</td></tr>
-<tr><td>สายรัด</td><td>ยาว 500 มม. จากก้นกรวยถึงขอบฐาน</td></tr>
-</table></div>
-<h3>อุปกรณ์</h3>
-<p>ผ้าใบ 1 ม้วน (Gartene, HomePro SKU 1121822) เข็มเย็บกระสอบ เชือกไนลอน เคเบิ้ลไทร์ 60 เส้น ลูกปูนพลาสติก 24 ตัว ลวดแข็ง 1 ม. ปากกา กรรไกร ไฟแช็ก ตะปู เชือก 1.7 ม. ตลับเมตร น้ำหนัก 50 กก. สำหรับทดสอบ</p>
-</div>
+{t:()=>T('Set 4 reference pegs and 2 level strings','ปักหมุดอ้างอิง 4 ตัว ขึงเชือก 2 เส้นให้ได้ระดับ'),
+ fig:()=>{const {cx,cy,S}=P,o=1.5*S;let s=planBase();
+  const pg=[[cx-o,cy],[cx+o,cy],[cx,cy-o],[cx,cy+o]];
+  s+=`<g stroke="${C.dim}" stroke-dasharray="5 4" stroke-width="1.3"><line x1="${cx-o}" y1="${cy}" x2="${cx}" y2="${cy-o}"/><line x1="${cx}" y1="${cy-o}" x2="${cx+o}" y2="${cy}"/><line x1="${cx+o}" y1="${cy}" x2="${cx}" y2="${cy+o}"/><line x1="${cx}" y1="${cy+o}" x2="${cx-o}" y2="${cy}"/></g>`;
+  s+=`<line x1="${cx-o}" y1="${cy}" x2="${cx+o}" y2="${cy}" stroke="${C.str}" stroke-width="2.5"/><line x1="${cx}" y1="${cy-o}" x2="${cx}" y2="${cy+o}" stroke="${C.str}" stroke-width="2.5"/>`;
+  pg.forEach(p=>s+=pegTop(p[0],p[1]));
+  s+=`<circle cx="${cx}" cy="${cy}" r="7" fill="${C.peg}" stroke="#6e4a22" stroke-width="2"/>`;
+  s+=dim(cx,cy+22,cx+o,cy+22,'1,500',{dy:18});
+  s+=tx(cx+o/2+38,cy-o/2-8,T('check 2,121','ตรวจ 2,121'),{f:C.dim,w:700,a:'start'});
+  s+=tx(cx-o/2-30,cy-o/2-8,'2,121',{f:C.dim,w:700,a:'end'});
+  s+=tx(cx-o-12,cy-16,T('peg','หมุด'),{a:'end'});s+=tx(cx+18,cy-o+5,T('string','เชือก'),{a:'start',f:C.str,w:700});
+  // inset elevation
+  const ix=618,iy=320;s+=`<rect x="${ix}" y="${iy}" width="172" height="140" rx="8" fill="${C.bg}" stroke="${C.line||'#d8d4c9'}"/>`;
+  s+=`<rect x="${ix}" y="${iy+95}" width="172" height="45" fill="${C.sub}"/><rect x="${ix}" y="${iy+91}" width="172" height="5" fill="${C.grassE}"/>`;
+  s+=`<rect x="${ix+81}" y="${iy+70}" width="10" height="45" fill="${C.peg}"/><line x1="${ix+8}" y1="${iy+48}" x2="${ix+164}" y2="${iy+48}" stroke="${C.str}" stroke-width="2.5"/>`;
+  s+=dim(ix+120,iy+48,ix+120,iy+91,'H',{dx:14,a:'start'});
+  s+=tx(ix+86,iy+22,T('Side view','ด้านข้าง'),{s:13,f:C.q});
+  s+=viewTag(T('PLAN (from above) · mm','มุมมองจากด้านบน · มม.'));return svg(s)},
+ body:()=>T(`<ol><li>Drive 4 pegs <b>1,500 mm</b> from the centre stake, on 2 lines at right angles.</li><li>Check the right angle: each pair of neighbouring pegs is <b>2,121 mm</b> apart, all 4 sides.</li><li>Tie 2 strings between opposite pegs so they cross exactly over the centre stake, one touching the other.</li><li>Make both strings level with the line level. Cut a notch in each peg at the string height.</li><li>Measure from the string down to the ground at the centre stake. Write it down: this is <b>H</b>.</li></ol>
+<p class="note">The strings mark the centre and the depth after the centre stake is dug out. Leave the pegs in until the pad is poured.</p>`,
+`<ol><li>ตอกหมุด 4 ตัว ห่างจากหมุดกลาง <b>1,500 มม.</b> เป็น 2 แนวตั้งฉากกัน</li><li>ตรวจมุมฉาก: หมุดที่อยู่ติดกันต้องห่างกัน <b>2,121 มม.</b> ครบทั้ง 4 ด้าน</li><li>ขึงเชือก 2 เส้นระหว่างหมุดที่อยู่ตรงข้ามกัน ให้ตัดกันตรงเหนือหมุดกลางพอดี เชือกแตะกัน</li><li>ใช้ระดับน้ำแขวนเชือกปรับให้เชือกทั้ง 2 เส้นได้ระดับ บากรอยที่หมุดทุกตัวตรงระดับเชือก</li><li>วัดจากเชือกลงถึงดินที่หมุดกลาง จดตัวเลขไว้ นี่คือ <b>H</b></li></ol>
+<p class="note">เชือกใช้หาจุดศูนย์กลางและความลึก หลังจากหมุดกลางถูกขุดออก ห้ามถอนหมุดจนกว่าจะเทฐานเสร็จ</p>`)},
 
-<h3>Pattern: one of 2 halves (to scale, mm)</h3>
-<div class="patwrap"><svg viewBox="0 0 760 512" role="img" aria-label="Cone bag pattern, one of 2 halves" class="pat">
-<path d="M76.6 252.6 A373.25 373.25 0 0 1 683.4 252.6 L581.8 325.4 A248.25 248.25 0 0 0 178.2 325.4 Z" fill="#efe8da"/><line x1="194.8" y1="295.5" x2="108.4" y2="214.0" stroke="#8a877f" stroke-width="1"/><line x1="219.8" y1="272.3" x2="145.0" y2="180.0" stroke="#8a877f" stroke-width="1"/><line x1="247.6" y1="252.7" x2="185.8" y2="151.2" stroke="#8a877f" stroke-width="1"/><line x1="277.8" y1="236.9" x2="230.1" y2="128.2" stroke="#8a877f" stroke-width="1"/><line x1="309.9" y1="225.4" x2="277.1" y2="111.2" stroke="#8a877f" stroke-width="1"/><line x1="343.2" y1="218.2" x2="326.0" y2="100.7" stroke="#8a877f" stroke-width="1"/><line x1="377.1" y1="215.5" x2="375.8" y2="96.8" stroke="#8a877f" stroke-width="1"/><line x1="411.1" y1="217.4" x2="425.7" y2="99.6" stroke="#8a877f" stroke-width="1"/><line x1="444.6" y1="223.8" x2="474.7" y2="109.0" stroke="#8a877f" stroke-width="1"/><line x1="476.9" y1="234.7" x2="522.1" y2="124.9" stroke="#8a877f" stroke-width="1"/><line x1="507.5" y1="249.7" x2="566.9" y2="146.9" stroke="#8a877f" stroke-width="1"/><line x1="535.7" y1="268.7" x2="608.4" y2="174.8" stroke="#8a877f" stroke-width="1"/><line x1="561.2" y1="291.3" x2="645.8" y2="207.9" stroke="#8a877f" stroke-width="1"/><line x1="583.5" y1="317.1" x2="678.4" y2="245.8" stroke="#8a877f" stroke-width="1"/>
-<path d="M331.6 435.3 A59.5 59.5 0 0 1 428.4 435.3 L435.6 445.5 L690.7 262.8 L683.4 252.6 A373.25 373.25 0 0 0 76.6 252.6 Z" fill="none" stroke="#3b3a36" stroke-width="2"/>
-<path d="M178.2 325.4 A248.25 248.25 0 0 1 581.8 325.4" fill="none" stroke="#1d6fb8" stroke-width="1.5" stroke-dasharray="6 4"/>
-<line x1="428.4" y1="435.3" x2="683.4" y2="252.6" stroke="#1d6fb8" stroke-width="1.5" stroke-dasharray="6 4"/>
-<g stroke="#8a877f" stroke-dasharray="2 3"><line x1="380" y1="470" x2="331.6" y2="435.3"/><line x1="380" y1="470" x2="428.4" y2="435.3"/><line x1="178.2" y1="325.4" x2="581.8" y2="325.4"/><line x1="331.6" y1="435.3" x2="428.4" y2="435.3"/><line x1="76.6" y1="252.6" x2="683.4" y2="252.6"/></g>
-<circle cx="380" cy="470" r="4" fill="#2c2c2a"/>
-<g font-size="13" fill="#2c2c2a" text-anchor="middle">
-<text x="380" y="492" font-weight="600">O = nail, 200 mm from the tarp edge</text>
-<text x="380" y="88">Cut: 1,493 arc</text><text x="380" y="292">Fold line: 993 arc (dashed)</text><text x="380" y="404">Cut: 238 arc</text>
-<text x="380" y="319.4" font-size="11.5" fill="#5f5e5a">1,614 straight across, at the 993 arc</text>
-<text x="380" y="246.6" font-size="11.5" fill="#5f5e5a">check 2,427 at the 1,493 arc</text>
-<text x="380" y="429.3" font-size="11.5" fill="#5f5e5a">check 387</text></g>
-<g font-size="13" fill="#2c2c2a"><text x="237.9" y="379.3" text-anchor="end">Line 1: cut</text><text x="500.1" y="379.3" text-anchor="end">Line 2: seam guide</text><text x="538.1" y="393.3">Line 3: cut, 50 out</text>
-<text x="24" y="96">Straps: slits every 200</text><text x="24" y="112">along the outer edge,</text><text x="24" y="128">stop 25 short of the fold</text></g></svg></div><p class="note">On a phone, swipe sideways to see the whole pattern.</p>
+{t:()=>T('Mark the 2,000 mm circle','ตีวงกลมกว้าง 2,000 มม.'),
+ fig:()=>{const {cx,cy,S}=P,o=1.5*S;let s=planBase();
+  s+=`<g opacity=".45"><line x1="${cx-o}" y1="${cy}" x2="${cx+o}" y2="${cy}" stroke="${C.str}" stroke-width="2"/><line x1="${cx}" y1="${cy-o}" x2="${cx}" y2="${cy+o}" stroke="${C.str}" stroke-width="2"/>${[[cx-o,cy],[cx+o,cy],[cx,cy-o],[cx,cy+o]].map(p=>pegTop(p[0],p[1])).join('')}</g>`;
+  s+=`<circle cx="${cx}" cy="${cy}" r="${S}" fill="none" stroke="${C.lime}" stroke-width="9"/><circle cx="${cx}" cy="${cy}" r="${S}" fill="none" stroke="#9a968c" stroke-width="1"/>`;
+  const a=-0.75,ex=cx+S*Math.cos(a),ey=cy+S*Math.sin(a);
+  s+=`<line x1="${cx}" y1="${cy}" x2="${ex}" y2="${ey}" stroke="${C.ink}" stroke-width="2"/><circle cx="${ex}" cy="${ey}" r="5" fill="${C.ink}"/>`;
+  s+=tx((cx+ex)/2-10,(cy+ey)/2-10,'1,000',{f:C.dim,w:700,a:'end'});
+  s+=`<circle cx="${cx}" cy="${cy}" r="7" fill="${C.peg}" stroke="#6e4a22" stroke-width="2"/>`;
+  s+=dim(cx-S,cy+S+30,cx+S,cy+S+30,'Ø2,000',{dy:-8});
+  s+=tx(cx+S+16,cy+S-10,T('lime powder line','เส้นปูนขาว'),{a:'start',w:700});
+  s+=viewTag(T('PLAN (from above) · mm','มุมมองจากด้านบน · มม.'));return svg(s)},
+ body:()=>T(`<ol><li>Tie a loop of string round the centre stake. Mark the string <b>1,000 mm</b> from the stake.</li><li>Keep the string tight and walk it round. Pour lime powder along the mark.</li><li>Check: the circle is <b>2,000 mm</b> across in both string directions.</li></ol>`,
+`<ol><li>ผูกเชือกเป็นห่วงคล้องหมุดกลาง ทำเครื่องหมายบนเชือก ห่างจากหมุด <b>1,000 มม.</b></li><li>ดึงเชือกให้ตึงแล้วเดินวนรอบ โรยปูนขาวตามเครื่องหมาย</li><li>ตรวจ: วงกลมกว้าง <b>2,000 มม.</b> ทั้ง 2 แนวเชือก</li></ol>`)},
 
-<div data-l="en">
-<h3>A. Mark one half</h3>
-<ol>
-<li>Spread the tarp flat. Drive the nail through it at point <b>O</b>, 200 mm in from one long edge.</li>
-<li>With the string from the nail, draw 3 arcs: <b>238</b>, <b>993</b> and <b>1,493 mm</b>.</li>
-<li>Draw <b>line 1</b> straight from O out through all 3 arcs.</li>
-<li>Where line 1 meets the 993 arc, measure <b>1,614 mm</b> straight to another point on that arc. Draw <b>line 2</b> from O through it.</li>
-<li>Check: <b>387 mm</b> between the lines at the 238 arc, <b>2,427 mm</b> at the 1,493 arc.</li>
-<li>Draw <b>line 3</b> parallel to line 2, <b>50 mm</b> outside it (seam allowance).</li>
-<li>The 993 arc is the <b>fold line</b>.</li>
-</ol>
-<h3>B. Cut</h3>
-<ol><li>Cut along the 238 arc, the 1,493 arc, line 1 and line 3.</li><li>Melt every cut edge quickly with the lighter. Do not burn holes.</li><li>Make the second half the same way.</li></ol>
-<h3>C. Strap slits</h3>
-<ol><li>Cut slits from the outer edge every <b>200 mm</b>, toward O: 14 straps per half.</li><li>Stop each slit <b>25 mm</b> short of the fold line; melt the end round.</li><li>Punch 2 holes in each strap, 50 mm from its end.</li></ol>
-<h3>D. Sew the 2 seams</h3>
-<ol><li>Fold each straight edge over <b>20 mm</b>.</li><li>Overlap the halves <b>50 mm</b> at both seams to make the cone.</li><li>Sew <b>2 rows</b>, 25 mm apart, stitches <b>15 mm</b> long, pulled tight.</li><li>Sew from the top edge to the fold line; leave the straps free. Knot each end twice.</li></ol>
-<h3>D2. Bottom band</h3>
-<ol><li>Cut a strip 150 mm × 3,900 mm.</li><li>Wrap it round the outside, lower edge on the fold line; sew 2 rows top and bottom.</li></ol>
-<h3>E. Top ring</h3>
-<ol><li>Bend the wire into a ring <b>288 mm</b> across (905 mm round + 50 mm overlap).</li><li>Fold the top 30 mm of fabric over it and stitch every 20 mm.</li></ol>
-<h3>F. Strength test</h3>
-<ol><li>Sew a 50 mm strip with the same seam. Hang <b>50 kg</b> for 10 minutes.</li><li>Holds: one layer. Tears: make a second cone and put it inside the first.</li></ol>
-<h3>G. Check</h3>
-<ul class="check"><li>Bottom 1,200 mm, top 288 mm, height 600 mm</li><li>Both seams: 2 rows, top to fold line</li><li>Straps fold flat, 500 mm long</li><li>Top ring round and stitched</li></ul>
-<h3>H. On site</h3>
-<ol>
-<li>Hole Ø2,000 × 600 mm, 50 mm compacted sand.</li>
-<li><b>Liner:</b> 2 strips across the hole, overlapped 300 mm, folded up the walls to 150 mm above the pad top (pad top = 200 mm above the sand).</li>
-<li>Spacer blocks on the liner; tie the full rebar cage on them.</li>
-<li>Clip 3 spacer wheels on each cone bar.</li>
-<li><b>Pour the pad</b>, 200 mm, level.</li>
-<li>Within 2–3 hours, slide the cone bag over the neck; tie its top ring to the cone bars.</li>
-<li>Lay the straps across the pad to the rim; <b>2 cable ties per strap</b> into the liner edge.</li>
-<li><b>Layers:</b> 150 mm concrete inside, 150 mm compacted soil outside, repeat to ground level.</li>
-<li>Keep the concrete wet 2 days.</li>
-</ol>
-</div>
+{t:()=>T('Dig the hole, straight sides','ขุดหลุม ผนังตั้งตรง'),
+ fig:()=>{const {cx,gy,S}=X;let s=secBase({depth:0.6});
+  s+=peg(160,gy,40,true)+peg(640,gy,40,true);
+  s+=`<line x1="160" y1="${gy-32}" x2="640" y2="${gy-32}" stroke="${C.str}" stroke-width="1.5" stroke-dasharray="6 6" opacity=".6"/>`;
+  s+=`<path d="M${cx+S+S} ${gy} Q${cx+S+S+50} ${gy-90} 800 ${gy-110} V${gy}Z" fill="${C.sub}" stroke="#7b5a35" stroke-width="1.5"/>`;
+  s+=dim(cx-S,gy+0.6*S+30,cx+S,gy+0.6*S+30,'2,000',{dy:-8});
+  s+=dim(cx-S-30,gy,cx-S-30,gy+0.6*S,'600',{dx:-10,a:'end'});
+  s+=dim(cx+S,gy-50,cx+2*S,gy-50,'≥ 1,000',{dy:-10});
+  s+=tx(790,gy-125,T('dug soil','ดินที่ขุด'),{w:700,a:'end'});
+  s+=tx(20,gy+26,T('topsoil','ดินหน้า'),{f:'#fff',s:14,w:700,a:'start',nohalo:1});
+  s+=tx(20,gy+0.6*S+60,T('firm subsoil','ดินเดิมแน่น'),{a:'start',s:14,w:700,f:'#fff',nohalo:1});
+  s+=tx(160,gy-58,T('notch','รอยบาก'),{s:13});
+  s+=viewTag(T('SECTION (cut through the middle) · mm','ภาพตัดกลางหลุม · มม.'));return svg(s)},
+ body:()=>T(`<ol><li>If the strings are in the way, untie them. The notches keep their height.</li><li>Dig inside the lime line. Keep the sides vertical: <b>2,000 mm</b> across from top to bottom.</li><li>Dig to <b>600 mm</b> deep. Step 5 checks it exactly. The centre stake comes out; that is fine.</li><li>Pile the soil at least <b>1,000 mm</b> from the edge. Keep it: it is packed back around the cone later. Volume: 1.89 m³.</li></ol>`,
+`<ol><li>ถ้าเชือกเกะกะ ปลดออกได้ รอยบากที่หมุดเก็บระดับไว้</li><li>ขุดภายในเส้นปูนขาว ผนังหลุมตั้งตรง กว้าง <b>2,000 มม.</b> ตั้งแต่ปากถึงก้นหลุม</li><li>ขุดลึก <b>600 มม.</b> ขั้นที่ 5 ตรวจละเอียดอีกครั้ง หมุดกลางหลุดออกได้ ไม่เป็นไร</li><li>กองดินห่างจากขอบหลุมอย่างน้อย <b>1,000 มม.</b> เก็บไว้ ใช้ถมรอบกรวยภายหลัง ปริมาณดิน 1.89 ลบ.ม.</li></ol>`)},
 
-<div data-l="th">
-<h3>ก. ตีเส้น 1 ชิ้น</h3>
-<ol>
-<li>ปูผ้าใบให้เรียบ ตอกตะปูที่จุด <b>O</b> ห่างจากขอบผ้า 200 มม.</li>
-<li>ใช้เชือกจากตะปู วาดเส้นโค้ง 3 เส้น รัศมี <b>238</b>, <b>993</b> และ <b>1,493 มม.</b></li>
-<li>ลาก <b>เส้นที่ 1</b> เป็นเส้นตรงจาก O ผ่านทั้ง 3 เส้นโค้ง</li>
-<li>จากจุดที่เส้นที่ 1 ตัดเส้นโค้ง 993 วัดเส้นตรง <b>1,614 มม.</b> ไปอีกจุดบนเส้นโค้งเดียวกัน ลาก <b>เส้นที่ 2</b> จาก O ผ่านจุดนั้น</li>
-<li>ตรวจ: ระยะระหว่างเส้นที่ 1 กับ 2 = <b>387 มม.</b> ที่โค้ง 238 และ <b>2,427 มม.</b> ที่โค้ง 1,493</li>
-<li>ลาก <b>เส้นที่ 3</b> ขนานกับเส้นที่ 2 ห่างออกไป <b>50 มม.</b> (เผื่อเย็บ)</li>
-<li>เส้นโค้ง 993 คือ <b>เส้นพับ</b></li>
-</ol>
-<h3>ข. ตัด</h3>
-<ol><li>ตัดตามเส้นโค้ง 238, เส้นโค้ง 1,493, เส้นที่ 1 และเส้นที่ 3</li><li>ลนไฟแช็กที่ขอบที่ตัดเร็วๆ อย่าให้ไหม้เป็นรู</li><li>ทำชิ้นที่ 2 แบบเดียวกัน</li></ol>
-<h3>ค. กรีดสายรัด</h3>
-<ol><li>กรีดจากขอบนอกทุก <b>200 มม.</b> เข้าหา O ได้สายรัด 14 เส้นต่อชิ้น</li><li>หยุดก่อนถึงเส้นพับ <b>25 มม.</b> ลนไฟปลายรอยกรีดให้มน</li><li>เจาะรู 2 รูที่ปลายสายรัดแต่ละเส้น ห่างปลาย 50 มม.</li></ol>
-<h3>ง. เย็บ 2 ตะเข็บ</h3>
-<ol><li>พับขอบตรงเข้า <b>20 มม.</b></li><li>ซ้อน 2 ชิ้น <b>50 มม.</b> ทั้ง 2 ตะเข็บ ได้รูปกรวย</li><li>เย็บ <b>2 แถว</b> ห่างกัน 25 มม. ฝีเข็ม <b>15 มม.</b> ดึงแน่น</li><li>เย็บจากขอบบนถึงเส้นพับ ไม่เย็บสายรัด มัดปมปลายเชือก 2 ครั้ง</li></ol>
-<h3>ง2. แถบเสริมก้นกรวย</h3>
-<ol><li>ตัดผ้ากว้าง 150 มม. ยาว 3,900 มม.</li><li>พันรอบนอกกรวย ขอบล่างที่เส้นพับ เย็บ 2 แถวทั้งขอบบนและล่าง</li></ol>
-<h3>จ. ห่วงปากบน</h3>
-<ol><li>ดัดลวดเป็นวงกว้าง <b>288 มม.</b> (รอบวง 905 มม. + ซ้อน 50 มม.)</li><li>พับผ้าด้านบน 30 มม. หุ้มห่วง เย็บทุก 20 มม.</li></ol>
-<h3>ฉ. ทดสอบ</h3>
-<ol><li>เย็บแถบกว้าง 50 มม. ตะเข็บแบบเดียวกัน แขวน <b>50 กก.</b> 10 นาที</li><li>ไม่ขาด: ใช้ 1 ชั้น ขาด: ทำกรวยอีกอันใส่ซ้อนข้างใน</li></ol>
-<h3>ช. ตรวจงาน</h3>
-<ul class="check"><li>ก้น 1,200 มม. ปากบน 288 มม. สูง 600 มม.</li><li>ตะเข็บ 2 แถว จากบนถึงเส้นพับ</li><li>สายรัดพับออกราบ ยาว 500 มม.</li><li>ห่วงปากบนกลม เย็บแน่น</li></ul>
-<h3>ซ. ที่หน้างาน</h3>
-<ol>
-<li>หลุมกว้าง 2,000 ลึก 600 มม. รองทราย 50 มม. บดแน่น</li>
-<li><b>ผ้าปู:</b> ผ้าใบ 2 ผืน ซ้อน 300 มม. พับขึ้นผนังหลุม สูงเกินหน้าฐาน 150 มม. (หน้าฐาน = สูงจากทราย 200 มม.)</li>
-<li>วางลูกปูนบนผ้าปู ผูกเหล็กทั้งหมด</li>
-<li>ใส่ลูกปูนพลาสติก 3 ตัวที่เหล็กกรวยแต่ละเส้น</li>
-<li><b>เทฐาน</b> หนา 200 มม. ปาดหน้าเรียบ</li>
-<li>ภายใน 2–3 ชั่วโมง สวมถุงกรวยครอบเหล็กคอ ผูกห่วงปากบนกับเหล็กกรวย</li>
-<li>วางสายรัดบนหน้าฐานถึงขอบ <b>มัดเคเบิ้ลไทร์เส้นละ 2 ตัว</b> กับขอบผ้าปู</li>
-<li><b>เทสลับชั้น:</b> คอนกรีตในกรวย 150 มม. ถมดินรอบนอก 150 มม. บดแน่น ทำซ้ำถึงระดับดิน</li>
-<li>รดน้ำคอนกรีต 2 วัน</li>
-</ol>
-</div>
-</section>
-<section id="rebar"><h2>Rebar in the footing</h2><div class="tablewrap"><table>
-<tr><th>Bars</th><th>Where</th><th>Count × length</th></tr>
-<tr><td>DB10</td><td>Pad grid, 200 mm apart both ways, 75 mm above the soil</td><td>10 + 10, up to 1.85 m (27.1 m)</td></tr>
-<tr><td>DB10</td><td>Core: hooked 150 mm onto the grid, up to just under the floor</td><td>4 × 1.38 m</td></tr>
-<tr><td>DB10</td><td>Cone: 300 mm foot along the grid, up the cone face 50 mm inside, 400 mm past the cone top into the pedestal</td><td>8 × 1.20 m</td></tr>
-<tr><td>RB9</td><td>2 hoops in the cone, tied to every cone bar</td><td>2 hoops</td></tr>
-</table></div><p class="note">The pedestal bars are on the <a href="pedestal.html">Pedestal</a> page. Whole pod: buy DB10 9 × 10 m and RB9 4 × 10 m straight. Sizing not yet checked by a structural engineer.</p></section><footer>Lotus 1.0 · build guide · updated 2 November 2026</footer></main><script>function setL(l){document.body.classList.toggle('th',l==='th');document.getElementById('bEn').classList.toggle('on',l==='en');document.getElementById('bTh').classList.toggle('on',l==='th');try{localStorage.setItem('lp-lang',l)}catch(e){}}try{if(localStorage.getItem('lp-lang')==='th')setL('th')}catch(e){}</script></body></html>
+{t:()=>T('Check the depth and the bottom','ตรวจความลึกและก้นหลุม'),
+ fig:()=>{const {cx,gy,S}=X,sy=gy-32,by=gy+0.6*S;let s=secBase({depth:0.6});
+  s+=peg(160,gy,40,true)+peg(640,gy,40,true)+strings(sy);
+  [cx,cx+0.9*S].forEach((x,i)=>{s+=`<line x1="${x}" y1="${sy}" x2="${x}" y2="${by-14}" stroke="${C.ink}" stroke-width="1.2"/><path d="M${x-6} ${by-14} L${x+6} ${by-14} L${x} ${by-1}Z" fill="${C.ink}"/>`;
+   s+=dim(x-14,sy,x-14,by,'H + 600',{dx:-8,a:'end'})});
+  s+=tx(cx,sy-12,T('plumb bob','ลูกดิ่ง'),{s:13});
+  s+=dim(cx,by+26,cx+0.9*S,by+26,'900',{dy:18});
+  // inset plan 5 points
+  const ix=680,iy=100,r=44;s+=`<circle cx="${ix}" cy="${iy}" r="${r}" fill="${C.bg}" stroke="#5b4026" stroke-width="1.5"/><line x1="${ix-r-14}" y1="${iy}" x2="${ix+r+14}" y2="${iy}" stroke="${C.str}"/><line x1="${ix}" y1="${iy-r-14}" x2="${ix}" y2="${iy+r+14}" stroke="${C.str}"/>`;
+  [[0,0],[1,0],[-1,0],[0,1],[0,-1]].forEach(p=>s+=`<circle cx="${ix+p[0]*r*0.9}" cy="${iy+p[1]*r*0.9}" r="5" fill="${C.dim}"/>`);
+  s+=tx(ix,iy-r-22,T('5 points, from above','5 จุด มองจากบน'),{s:13,w:700});
+  s+=tx(20,by+40,T('firm subsoil','ดินเดิมแน่น'),{a:'start',s:14,w:700,f:'#fff',nohalo:1});
+  s+=viewTag(T('SECTION · mm','ภาพตัด · มม.'));return svg(s)},
+ body:()=>T(`<ol><li>Re-tie the strings at the notches.</li><li>Hang the plumb bob from the string crossing. Measure from the string to the bottom: it must be <b>H + 600 mm</b>.</li><li>Repeat at 4 more points, <b>900 mm</b> out from the centre along each string. All 5 within <b>20 mm</b> of H + 600.</li><li>The bottom must be firm, undisturbed subsoil, not dark topsoil. Scrape off loose crumbs. Stand on one heel: the print must be under <b>5 mm</b> deep.</li><li>Soft or still topsoil? Dig deeper until firm, then fill back to H + 600 with sand tamped in 50 mm layers.</li></ol>`,
+`<ol><li>ขึงเชือกกลับที่รอยบาก</li><li>ห้อยลูกดิ่งจากจุดตัดเชือก วัดจากเชือกลงถึงก้นหลุม ต้องได้ <b>H + 600 มม.</b></li><li>วัดอีก 4 จุด ห่างจากศูนย์กลาง <b>900 มม.</b> ตามแนวเชือก ทั้ง 5 จุดต่างจาก H + 600 ไม่เกิน <b>20 มม.</b></li><li>ก้นหลุมต้องเป็นดินเดิมแน่น ไม่ใช่ดินหน้าสีดำ ขูดเศษดินร่วนออก ยืนส้นเท้าเดียว รอยยุบต้องลึกไม่เกิน <b>5 มม.</b></li><li>ถ้ายังนิ่มหรือยังเป็นดินหน้า ขุดลึกต่อจนแน่น แล้วเติมทรายกลับถึง H + 600 กระทุ้งทีละชั้น 50 มม.</li></ol>`)},
+
+{t:()=>T('Lay and tamp the sand bed','ปูทรายรองพื้น กระทุ้งแน่น'),
+ fig:()=>{const {cx,gy,S}=X,sy=gy-32,by=gy+0.6*S,ty=by-0.05*S;let s=secBase({depth:0.6,sand:true});
+  s+=peg(160,gy,40,true)+peg(640,gy,40,true)+strings(sy);
+  s+=`<line x1="${cx}" y1="${sy}" x2="${cx}" y2="${ty-14}" stroke="${C.ink}" stroke-width="1.2"/><path d="M${cx-6} ${ty-14} L${cx+6} ${ty-14} L${cx} ${ty-1}Z" fill="${C.ink}"/>`;
+  s+=dim(cx+14,sy,cx+14,ty,'H + 550',{dx:8,a:'start'});
+  s+=`<line x1="${cx+60}" y1="${by-2}" x2="${cx+60}" y2="${by+34}" stroke="#fff" stroke-width="1.5"/>`+tx(cx+60,by+58,T('sand 50 mm, tamped','ทราย 50 มม. กระทุ้งแน่น'),{w:700,f:'#fff',nohalo:1});
+  // tamper
+  const tx0=cx-90;s+=`<rect x="${tx0-26}" y="${ty-14}" width="52" height="12" fill="#6b6b66"/><rect x="${tx0-3}" y="${ty-80}" width="6" height="66" fill="${C.peg}"/><rect x="${tx0-18}" y="${ty-84}" width="36" height="6" fill="${C.peg}"/>`;
+  s+=tx(tx0,sy-14,T('hand tamper','ที่กระทุ้ง'),{s:13});
+  s+=viewTag(T('SECTION · mm','ภาพตัด · มม.'));return svg(s)},
+ body:()=>T(`<ol><li>Spread the sand over the whole bottom, 70 mm deep before tamping.</li><li>Wet it and tamp it until it is <b>50 mm</b> thick and hard.</li><li>Check at the same 5 points: string to sand = <b>H + 550 mm</b>, all within 10 mm.</li></ol>
+<p class="note">Hole done. The pad liner goes in next.</p>`,
+`<ol><li>เกลี่ยทรายทั่วก้นหลุม หนา 70 มม. ก่อนกระทุ้ง</li><li>รดน้ำแล้วกระทุ้งจนเหลือหนา <b>50 มม.</b> และแน่น</li><li>ตรวจที่ 5 จุดเดิม: จากเชือกถึงหน้าทราย = <b>H + 550 มม.</b> ต่างกันไม่เกิน 10 มม.</li></ol>
+<p class="note">ขุดหลุมเสร็จ ขั้นต่อไปคือปูผ้าปูก้นหลุม</p>`)}
+];
+const STAGE=()=>T('Stage 1 of the footing: dig the hole','ขั้นที่ 1 ของฐานราก: ขุดหลุม');
+// ---------- stepper ----------
+let i=0;
+function go(n){i=Math.max(0,Math.min(steps.length-1,n));render();try{history.replaceState(null,'','#'+(i+1))}catch(e){}}
+function render(){const st=steps[i];
+ document.getElementById('stage').textContent=STAGE();
+ document.getElementById('h1').textContent=T('1 · Footing','1 · ฐานราก');
+ document.getElementById('fig').innerHTML=st.fig();
+ document.getElementById('count').textContent=T('Step ','ขั้นที่ ')+(i+1)+' / '+steps.length;
+ document.getElementById('txt').innerHTML='<h2>'+(i+1)+'. '+st.t()+'</h2>'+st.body();
+ document.getElementById('prev').disabled=i===0;document.getElementById('next').disabled=i===steps.length-1;
+ document.getElementById('dots').innerHTML=steps.map((_,k)=>`<button class="${k===i?'on':''}" aria-label="${k+1}" onclick="go(${k})"></button>`).join('');
+ document.getElementById('foot').innerHTML=T('Diagrams for the next stages (forms, rebar, pour) are being drawn. Until then: <a href="footing-text.html">footing text version</a>.','แผนภาพขั้นต่อไป (แบบผ้าใบ เหล็ก เทคอนกรีต) กำลังทำ ระหว่างนี้ดู <a href="footing-text.html">ฉบับตัวหนังสือ</a>');}
+document.getElementById('prev').onclick=()=>go(i-1);document.getElementById('next').onclick=()=>go(i+1);
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')go(i+1);if(e.key==='ArrowLeft')go(i-1)});
+let sx=null;const fg=document.getElementById('fig');
+fg.addEventListener('touchstart',e=>{sx=e.touches[0].clientX},{passive:true});
+fg.addEventListener('touchend',e=>{if(sx===null)return;const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>50)go(i+(dx<0?1:-1));sx=null});
+function setL(l){LANG=l;document.body.classList.toggle('th',l==='th');document.getElementById('bEn').classList.toggle('on',l==='en');document.getElementById('bTh').classList.toggle('on',l==='th');try{localStorage.setItem('lp-lang',l)}catch(e){}render()}
+try{if(localStorage.getItem('lp-lang')==='th')LANG='th'}catch(e){}
+const h=parseInt(location.hash.slice(1));if(h>0)i=Math.min(steps.length,h)-1;
+setL(LANG);
+</script>
+</body></html>
