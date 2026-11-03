@@ -150,25 +150,35 @@ const steps=[
  `<p>ของทั้งหมดสำหรับฐานราก ทราย: ผสมปูน 0.6 ลบ.ม. + รองก้นหลุม 0.2 ลบ.ม. และ: เชือก หมุด 5 ตัว ปูนขาว เข็มเย็บกระสอบและเชือกไนลอนสำหรับถุงกรวย</p>`)},
 
 // P2 cut the bars
-{p:1,t:()=>T('Cut the bars','ตัดเหล็ก'),h:520,
- fig:()=>{let s=tag(T('CUTTING PLAN · each bar 10 m · lengths in cm','แผนตัด · เหล็กเส้นละ 10 ม. · ความยาว ซม.'));
+{p:1,t:()=>T('Cut the bars','ตัดเหล็ก'),h:770,
+ fig:()=>{let s=tag(T('CUTTING PLAN · cm · measure from the left end','แผนตัด · ซม. · วัดจากปลายซ้าย'));
   const col={A:'#b5562a',B:'#c97a2e',C:'#8f3f1f',D:'#d39a52',E:'#6d2f16',F:'#3e6fa8',G:'#2f6b2a',H:'#e0a050',J:'#c98d2a'};
   const len={A:184,B:175,C:156,D:121,E:43,F:136,G:156,H:294,J:162};
-  const plan=[['A','A','A','A','C','E','E'],['B','B','B','B','D','D','E'],['G','G','G','G','G','G','E'],['G','G','C','C','C','D'],['F','F','F','F','D']];
-  const px=0.66,x0=50;let y=60;
-  const bars=[...plan.map(p=>['DB10',p]),['RB9',['H','J']]];
-  bars.forEach(([kind,p],bi)=>{let x=x0;s+=tx(x0-10,y+20,(bi+1)+'',{a:'end',s:16,w:800});
-   p.forEach(k=>{const w=len[k]*px;s+=`<rect x="${x}" y="${y}" width="${w-2}" height="30" fill="${col[k]}" rx="3"/>`+tx(x+w/2,y+20,w<60?k:k+' '+len[k],{s:12,w:700,f:'#fff',nohalo:1});x+=w});
-   const rest=1000*px+x0-x;if(rest>3)s+=`<rect x="${x}" y="${y}" width="${rest}" height="30" fill="url(#hatch)" stroke="#bbb"/>`;
-   s+=tx(x0+1000*px+8,y+20,kind,{a:'start',s:13,w:700,f:kind==='RB9'?'#a46a1c':C.db});y+=46});
+  // folded-bar explainer
+  const fx=40,fy=58;s+=`<path d="M${fx} ${fy} H${fx+150} A10 10 0 0 1 ${fx+150} ${fy+20} H${fx}" fill="none" stroke="${C.db}" stroke-width="6"/>`;
+  s+=arrow(fx+175,fy+10,fx+225,fy+10,C.ink,2)+`<line x1="${fx+250}" y1="${fy}" x2="${fx+395}" y2="${fy}" stroke="${C.db}" stroke-width="6"/><line x1="${fx+250}" y1="${fy+20}" x2="${fx+395}" y2="${fy+20}" stroke="${C.db}" stroke-width="6"/>`;
+  s+=`<path d="M${fx+400} ${fy-8} q8 18 0 36" stroke="${C.str}" stroke-width="3" fill="none"/>`+tx(fx+410,fy+15,T('cut −5 | 5− → 2 × 495','ตัด −5 | 5− → 2 × 495'),{s:13,w:700,a:'start'});
+  s+=tx(fx,fy+44,T('1 bar DB10 10 m, folded','เหล็ก DB10 10 ม. 1 เส้น พับมา'),{s:12,a:'start',f:C.q});
+  const px=1.36,x0=70;let y=150;
+  // ruler
+  s+=`<line x1="${x0}" y1="${y-14}" x2="${x0+495*px}" y2="${y-14}" stroke="${C.ink}" stroke-width="1.5"/>`;
+  for(let c=0;c<=495;c+=10){const X=x0+c*px,big=c%50===0;s+=`<line x1="${X}" y1="${y-14}" x2="${X}" y2="${y-14-(big?10:5)}" stroke="${C.ink}" stroke-width="${big?1.5:1}"/>`;if(c%100===0)s+=tx(X,y-28,c,{s:12,w:700})}
+  s+=tx(x0+495*px,y-28,'495',{s:12,w:700,f:C.str});
+  const plan=[['A','A','D'],['A','A','D'],['B','B','F'],['B','B','F'],['G','G','G'],['G','G','G'],['G','G','C'],['C','C','C'],['F','F','D','E','E'],['D','E','E']];
+  plan.forEach((p,ri)=>{let x=x0,cum=0;const nm=Math.floor(ri/2)+1+(ri%2?'b':'a');s+=tx(x0-12,y+21,nm,{a:'end',s:15,w:800});
+   p.forEach(k=>{const w=len[k]*px;s+=`<rect x="${x}" y="${y}" width="${w-2}" height="30" fill="${col[k]}" rx="3"/>`+tx(x+w/2,y+20,w<70?k:k+' '+len[k],{s:12,w:700,f:'#fff',nohalo:1});x+=w;cum+=len[k];
+    s+=`<line x1="${x-1}" y1="${y-3}" x2="${x-1}" y2="${y+33}" stroke="${C.str}" stroke-width="2"/>`+tx(x-1,y+44,cum,{s:10,w:700,f:C.str})});
+   const rest=x0+495*px-x;if(rest>2)s+=`<rect x="${x}" y="${y}" width="${rest}" height="30" fill="url(#hatch)" stroke="#bbb"/>`;
+   if(ri%2===1&&ri<9)s+=`<line x1="20" y1="${y+49}" x2="780" y2="${y+49}" stroke="#e4dfd3"/>`;
+   y+=50});
+  s+=tx(x0+495*px+8,165,'DB10',{a:'start',s:13,w:700,f:C.db})+tx(14,y+16,T('Bar 6 = RB9 (straight, not folded):','เส้นที่ 6 = RB9 (ตรง ไม่พับ):'),{a:'start',s:13,w:700,f:C.q});
+  {let x=x0+230;[['H',294],['J',162]].forEach(([k,l])=>{const w=l*0.7;s+=`<rect x="${x}" y="${y+2}" width="${w-2}" height="22" fill="${col[k]}" rx="3"/>`+tx(x+w/2,y+18,k+' '+l,{s:12,w:700,f:'#fff',nohalo:1});x+=w})}
   s=`<defs><pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#f1eee6"/><line x1="0" y1="0" x2="0" y2="8" stroke="#ccc" stroke-width="3"/></pattern></defs>`+s;
-  // count summary
-  const cnt={};bars.forEach(([k,p])=>p.forEach(q=>cnt[q]=(cnt[q]||0)+1));
-  let sx=x0,sy=y+26;s+=tx(14,sy-6,T('TOTAL PIECES','รวมจำนวนชิ้น'),{a:'start',s:14,w:700,f:C.q});
-  Object.keys(len).forEach((k,i)=>{const cx=x0+i*78;s+=`<rect x="${cx-8}" y="${sy+4}" width="70" height="44" rx="6" fill="${col[k]}"/>`+tx(cx+27,sy+24,k,{s:16,w:800,f:'#fff',nohalo:1})+tx(cx+27,sy+42,'x'+cnt[k],{s:14,w:800,f:'#fff',nohalo:1})});
-  return svg(s,520)},
- body:()=>T(`<ul><li>Straighten each folded bar first.</li><li>Cut with the grinder. Grey = leftover, keep it.</li><li>C and G are both 156 cm: C stays straight, G gets bent. Mark G pieces with paint.</li></ul>`,
- `<ul><li>ดัดเหล็กที่พับมาให้ตรงก่อน</li><li>ตัดด้วยเครื่องเจียร สีเทา = เศษ เก็บไว้</li><li>C กับ G ยาว 156 ซม. เท่ากัน: C ใช้ตรง G ต้องดัด ทาสีที่ชิ้น G</li></ul>`)},
+  const cnt={H:1,J:1};plan.forEach(p=>p.forEach(q=>cnt[q]=(cnt[q]||0)+1));
+  const sy=y+44;Object.keys(len).forEach((k,i)=>{const cx=x0+i*78;s+=`<rect x="${cx-8}" y="${sy}" width="70" height="40" rx="6" fill="${col[k]}"/>`+tx(cx+27,sy+18,k,{s:15,w:800,f:'#fff',nohalo:1})+tx(cx+27,sy+35,'x'+cnt[k],{s:14,w:800,f:'#fff',nohalo:1})});
+  return svg(s,770)},
+ body:()=>T(`<ul><li>Cut each folded bar at the fold, 5 cm each side. 5 bars → 10 pieces of 495 cm (1a to 5b).</li><li>Lay a piece along the tape. Mark at each red number, measured from the left end. Cut on the marks.</li><li>Grey = leftover, keep it. C and G are both 156: paint the G pieces.</li></ul>`,
+ `<ul><li>ตัดเหล็กพับตรงรอยพับ ทิ้งข้างละ 5 ซม. 5 เส้น → 10 ท่อน ยาว 495 ซม. (1a ถึง 5b)</li><li>วางเหล็กตามตลับเมตร ขีดตามตัวเลขสีแดง วัดจากปลายซ้าย แล้วตัดตามขีด</li><li>สีเทา = เศษ เก็บไว้ C กับ G ยาว 156 เท่ากัน ทาสีที่ชิ้น G</li></ul>`)},
 
 // P3 bend the bars
 {p:1,t:()=>T('Bend the bars','ดัดเหล็ก'),h:600,
