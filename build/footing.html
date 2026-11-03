@@ -86,7 +86,7 @@ const I={
  string:(x,y)=>`<g transform="translate(${x} ${y})"><ellipse cx="0" cy="-16" rx="18" ry="14" fill="#f2efe6" stroke="${C.str}" stroke-width="3"/><path d="M-10 -20 q10 8 20 0 M-12 -12 q12 8 24 0" stroke="${C.str}" fill="none" stroke-width="2"/></g>`,
  lime:(x,y)=>`<g transform="translate(${x} ${y})"><path d="M-18 0 L-20 -40 L20 -40 L18 0Z" fill="#fff" stroke="#999"/><text x="0" y="-16" text-anchor="middle" font-size="9" font-weight="700" fill="#777">CaO</text></g>`,
  tamper:(x,y)=>`<g transform="translate(${x} ${y})"><rect x="-18" y="-10" width="36" height="10" fill="#6b6b66"/><rect x="-3" y="-60" width="6" height="50" fill="${C.wood}"/><rect x="-12" y="-64" width="24" height="5" fill="${C.wood}"/></g>`,
- stick:(x,y)=>`<g transform="translate(${x} ${y})"><rect x="-3" y="-62" width="6" height="62" fill="${C.wood}" transform="rotate(10)"/></g>`,
+ stick:(x,y)=>`<g transform="translate(${x} ${y})"><line x1="0" y1="-110" x2="0" y2="0" stroke="#222" stroke-width="6"/><rect x="-10" y="-116" width="20" height="8" rx="3" fill="#222"/><path d="M-12 -80 L-12 -60 M12 -80 L12 -60" stroke="${C.ink}" stroke-width="2"/>${ah(-12,-58,Math.PI/2,C.ink)}${ah(12,-82,-Math.PI/2,C.ink)}</g>`,
  nail:(x,y)=>`<g transform="translate(${x} ${y})"><rect x="-2" y="-40" width="4" height="34" fill="#555"/><path d="M-2 -6 L0 2 L2 -6Z" fill="#555"/><rect x="-9" y="-44" width="18" height="4" fill="#333"/><ellipse cx="0" cy="-36" rx="12" ry="3" fill="none" stroke="#888" stroke-width="3"/></g>`,
  moon:(x,y)=>`<g transform="translate(${x} ${y})"><circle r="22" fill="#5b6b8f"/><circle cx="10" cy="-6" r="20" fill="${C.bg}"/></g>`,
  ties:(x,y)=>`<g transform="translate(${x} ${y})">${[-10,0,10].map(d=>`<path d="M${d} -40 v34 l3 4" stroke="#222" stroke-width="3" fill="none"/>`).join('')}</g>`,
@@ -305,15 +305,15 @@ const steps=[
   s+=I.board(Xl(1)-70,GY-5)+I.pile(Xl(1)-70,GY-22,C.conc,70,30);
   s+=`<path d="M${Xl(1)-50} ${GY-60} Q${Xl(0.8)} ${GY-110} ${Xl(0.6)} ${Y(G.padTop)-10}" fill="none" stroke="${C.ink}" stroke-width="3" stroke-dasharray="6 5"/>`+ah(Xl(0.6),Y(G.padTop)-10,1.2,C.ink);
   s+=I.shovel(Xl(1)-40,GY-28);
-  s+=I.pan(Xr(1)-60,GY-56)+arrow(Xr(1)-60,GY-50,Xr(0.7),Y(G.padTop)-14);
-  s+=I.stick(CX-30,Y(G.padTop)+6);
+  s+=I.pan(Xr(1)-40,GY-56)+arrow(Xr(1)-40,GY-50,Xr(0.93),Y(G.padTop)-14);
+  s+=I.stick(Xr(0.75),Y(G.sandTop)-2)+tx(Xr(0.75)+18,Y(G.sandTop)-104,T('rod 1.5 m','เหล็กกระทุ้ง 1.5 ม.'),{s:14,w:700,a:'start'});
   s+=dim(Xr(1)+26,Y(G.sandTop),Xr(1)+26,Y(G.padTop),'20 cm',{dx:10,a:'start',s:18});
   s+=`<path d="M${Xl(0.6)} ${Y(G.padTop)+3} h${1.2*S}" stroke="#6f6c64" stroke-width="3" stroke-dasharray="3 3"/>`;
   s+=`<line x1="${Xl(0.3)}" y1="${Y(G.padTop)+4}" x2="${Xl(0.45)}" y2="${Y(-0.95)}" stroke="#fff" stroke-width="1.5"/>`+tx(Xl(0.45),Y(-0.95)+20,T('brush rough inside 1.2 m circle','กวาดผิวให้หยาบ วงกลม 1.2 ม.'),{s:14,w:700,f:'#fff',nohalo:1});
   s+=badge(CX-90,60,T('x4½ batches','x4½ ครั้ง'),{s:22});
   s+=I.moon(690,60)+tx(690,108,T('next day','วันรุ่งขึ้น'),{s:16,w:800});
   s+=tag(T('SIDE VIEW','ภาพตัด'));return svg(s)},
- body:()=>T(`<ul><li>Board at the hole edge. Shovel straight in. Far side: pan. 20 cm thick, level.</li><li>Push a stick up and down so concrete fills around the bars.</li><li>When the top is stiff, brush it rough inside a 1.2 m circle.</li><li>Leave it until the next day.</li></ul>`,`<ul><li>แผ่นไม้ผสมปูนชิดขอบหลุม ตักเทลงตรงๆ ฝั่งไกลใช้บุ้งกี๋ หนา 20 ซม. ปาดเรียบ</li><li>ใช้ไม้กระทุ้งขึ้นลง ให้ปูนเข้ารอบเหล็ก</li><li>พอผิวหน้าเริ่มแข็ง กวาดให้หยาบ ในวงกลม 1.2 ม.</li><li>ทิ้งไว้ถึงวันรุ่งขึ้น</li></ul>`)},
+ body:()=>T(`<ul><li>Board at the hole edge. Shovel straight in. Far side: pan. 20 cm thick, level.</li><li>Rod it: stab a 1.5 m leftover DB10 bar straight down to the bottom, every 15 cm over the whole surface, until no more air bubbles come up.</li><li>When the top is stiff, brush it rough inside a 1.2 m circle.</li><li>Leave it until the next day.</li></ul>`,`<ul><li>แผ่นไม้ผสมปูนชิดขอบหลุม ตักเทลงตรงๆ ฝั่งไกลใช้บุ้งกี๋ หนา 20 ซม. ปาดเรียบ</li><li>กระทุ้งไล่อากาศ: ใช้เหล็ก DB10 เศษยาว 1.5 ม. แทงลงตรงๆ จนถึงก้น ทุก 15 ซม. ทั่วทั้งหน้า จนไม่มีฟองอากาศขึ้น</li><li>พอผิวหน้าเริ่มแข็ง กวาดให้หยาบ ในวงกลม 1.2 ม.</li><li>ทิ้งไว้ถึงวันรุ่งขึ้น</li></ul>`)},
 
 // 5 fit cone bag
 {t:()=>T('Fit the cone bag','สวมถุงกรวย'),
@@ -337,12 +337,12 @@ const steps=[
   s+=`<path d="M${Xl(BAG.rb)} ${Y(-0.35)} L${Xl(BAG.rt)} ${Y(0)} L${Xr(BAG.rt)} ${Y(0)} L${Xr(BAG.rb)} ${Y(-0.35)}Z" fill="${C.conc}"/>`;
   s+=cage({blocks:false,wheels:false})+bag();
   s+=I.pan(Xl(0.55),Y(0)-60)+arrow(Xl(0.55),Y(0)-54,Xl(0.18),Y(0)-6);
-  s+=I.stick(Xr(0.15),Y(0)+10);
+  s+=I.stick(Xr(0.15),Y(-0.33))+tx(Xr(0.15)+18,Y(-0.33)-100,T('rod 1.5 m','เหล็กกระทุ้ง 1.5 ม.'),{s:13,w:700,a:'start'});
   s+=dim(Xr(1)+26,Y(-0.35),Xr(1)+26,Y(0),'35 cm',{dx:10,a:'start',s:16});
-  s+=tx(Xl(0.98)+4,Y(-0.27),T('empty, no soil yet','ว่างไว้ ยังไม่ถมดิน'),{s:13,w:700,f:C.q,a:'start'});
+  s+=tx(Xl(0.98)+4,Y(-0.08),T('empty, no soil yet','ว่างไว้ ยังไม่ถมดิน'),{s:13,w:700,f:C.q,a:'start'});
   s+=badge(CX,60,T('x2 batches, all at once','x2 ครั้ง เทรวดเดียว'),{s:22});
   s+=tag(T('SIDE VIEW','ภาพตัด'));return svg(s)},
- body:()=>T(`<ul><li>No soil yet. The nails and ties hold the bag.</li><li>Pour concrete through the top until it is level with the ground. Push a stick up and down around the bars.</li><li>Leave the bars sticking up.</li></ul>`,`<ul><li>ยังไม่ถมดิน ตะปูและเคเบิ้ลไทร์ยึดถุงไว้</li><li>เทปูนทางปากถุงจนเสมอระดับดิน ใช้ไม้กระทุ้งขึ้นลงรอบเหล็ก</li><li>เหล็กที่โผล่ไว้ ห้ามตัด</li></ul>`)},
+ body:()=>T(`<ul><li>No soil yet. The nails and ties hold the bag.</li><li>Pour concrete through the top until it is level with the ground. </li><li>Rod it: stab a 1.5 m leftover DB10 bar straight down to the bottom, every 15 cm over the whole surface, until no more air bubbles come up.</li><li>Leave the bars sticking up.</li></ul>`,`<ul><li>ยังไม่ถมดิน ตะปูและเคเบิ้ลไทร์ยึดถุงไว้</li><li>เทปูนทางปากถุงจนเสมอระดับดิน </li><li>กระทุ้งไล่อากาศ: ใช้เหล็ก DB10 เศษยาว 1.5 ม. แทงลงตรงๆ จนถึงก้น ทุก 15 ซม. ทั่วทั้งหน้า จนไม่มีฟองอากาศขึ้น</li><li>เหล็กที่โผล่ไว้ ห้ามตัด</li></ul>`)},
 
 // 7 cure
 {t:()=>T('Keep it wet 2 days','บ่มน้ำ 2 วัน'),
