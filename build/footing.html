@@ -143,7 +143,7 @@ const steps=[
    [I.wire(0,0),T('tie wire','ลวดผูกเหล็ก'),'x1'],
    [I.block(0,0),T('spacer 7.5 cm','ลูกปูน 7.5 ซม.'),'x12'],
    [I.wheel(0,0),T('spacer wheel','ลูกปูนพลาสติก'),'x24'],
-   [I.nail(0,0),T('concrete nail + washer','ตะปูคอนกรีต + แหวน'),'x22'],
+   [I.nail(0,0),T('concrete nail + washer','ตะปูคอนกรีต + แหวน'),'x44'],
    [I.drum(0,0),T('water drum','ถังน้ำ'),'x1'],
    [I.ties(0,0),T('cable ties','เคเบิ้ลไทร์'),'x8'],
    [I.bucket(0,0,'#fff',0),T('bucket 20 L','ถัง 20 ลิตร'),'x4'],
@@ -318,60 +318,57 @@ const steps=[
 // 5 fit cone bag
 {t:()=>T('Fit the cone bag','สวมถุงกรวย'),
  fig:()=>{let s=ground()+liner()+pad()+cage({blocks:false,wheels:true})+bag();
-  s+=`<line x1="${Xr(0.675)}" y1="${Y(G.padTop)-10}" x2="${Xr(0.8)}" y2="${Y(-0.85)}" stroke="#fff" stroke-width="1.5"/>`+tx(Xr(0.8),Y(-0.85)+20,T('concrete nail + washer x22','ตะปูคอนกรีต + แหวน x22'),{s:14,w:700,f:'#fff',nohalo:1});
+  s+=`<line x1="${Xr(0.675)}" y1="${Y(G.padTop)-10}" x2="${Xr(0.8)}" y2="${Y(-0.85)}" stroke="#fff" stroke-width="1.5"/>`+tx(Xr(0.8),Y(-0.85)+20,T('concrete nail + washer x44 (2 per tab)','ตะปูคอนกรีต + แหวน x44 (แถบละ 2)'),{s:14,w:700,f:'#fff',nohalo:1});
   s+=`<line x1="${Xl(0.30)}" y1="${Y(0)}" x2="${Xl(0.75)}" y2="${Y(0.32)}" stroke="${C.ink}" stroke-width="1.5"/>`+tx(Xl(0.75),Y(0.32)-8,T('cable tie to G x8','เคเบิ้ลไทร์ ผูกกับ G x8'),{s:14,w:700,a:'end'});
   s+=tx(Xl(0.62),Y(-0.08),T('cone bag','ถุงกรวย'),{s:16,w:700,f:C.tarp,a:'end'});
   s+=dim(Xl(BAG.rt),Y(0)-24,Xr(BAG.rt),Y(0)-24,'67 cm',{dy:-8,s:16});
   // top view inset
   const cx=700,cy=95,k=78;s+=`<circle cx="${cx}" cy="${cy}" r="${BAG.sk*k}" fill="#fff" stroke="${C.tarp}" stroke-width="2"/>`;
-  for(let i=0;i<22;i++){const a=i*Math.PI/11;s+=`<line x1="${cx+BAG.rb*k*Math.cos(a)}" y1="${cy+BAG.rb*k*Math.sin(a)}" x2="${cx+BAG.sk*k*Math.cos(a)}" y2="${cy+BAG.sk*k*Math.sin(a)}" stroke="${C.tarp}" stroke-width="1.5"/>`;const b=a+Math.PI/22;s+=`<circle cx="${cx+0.675*k*Math.cos(b)}" cy="${cy+0.675*k*Math.sin(b)}" r="3" fill="#222"/>`}
+  for(let i=0;i<22;i++){const a=i*Math.PI/11;s+=`<line x1="${cx+BAG.rb*k*Math.cos(a)}" y1="${cy+BAG.rb*k*Math.sin(a)}" x2="${cx+BAG.sk*k*Math.cos(a)}" y2="${cy+BAG.sk*k*Math.sin(a)}" stroke="${C.tarp}" stroke-width="1.5"/>`;[a+Math.PI/22-0.05,a+Math.PI/22+0.05].forEach(b=>s+=`<circle cx="${cx+0.675*k*Math.cos(b)}" cy="${cy+0.675*k*Math.sin(b)}" r="2.5" fill="#222"/>`)}
   s+=`<circle cx="${cx}" cy="${cy}" r="${BAG.rb*k}" fill="#dfeaf5" stroke="${C.tarp}" stroke-width="2"/><circle cx="${cx}" cy="${cy}" r="${BAG.rt*k}" fill="#fff" stroke="${C.tarp}" stroke-width="2"/>`;
   for(let i=0;i<8;i++){const a=i*Math.PI/4+Math.PI/16;s+=`<circle cx="${cx+0.265*k*Math.cos(a)}" cy="${cy+0.265*k*Math.sin(a)}" r="4" fill="${C.db}"/><line x1="${cx+0.265*k*Math.cos(a)}" y1="${cy+0.265*k*Math.sin(a)}" x2="${cx+BAG.rt*k*Math.cos(a)}" y2="${cy+BAG.rt*k*Math.sin(a)}" stroke="#111" stroke-width="2"/>`}
   s+=tx(cx,cy+BAG.sk*k+20,T('from above','มองจากบน'),{s:13,w:700});
   s+=tag(T('SIDE VIEW · next day','ภาพตัด · วันรุ่งขึ้น'));return svg(s)},
- body:()=>T(`<ul><li>Slide the bag down over the bars until it sits on the pad.</li><li>Fold the 22 tabs flat outward. 1 concrete nail with a washer through each tab into the pad.</li><li>Top edge: 1 cable tie to each of the 8 G bars. The top stays open, 67 cm across.</li></ul>`,`<ul><li>สวมถุงลงครอบเหล็ก จนถุงวางบนฐาน</li><li>พับแถบ 22 แถบออกด้านนอกให้ราบ ตอกตะปูคอนกรีตพร้อมแหวน แถบละ 1 ตัว ลงในฐาน</li><li>ขอบบน: เคเบิ้ลไทร์ผูกกับเหล็ก G ทั้ง 8 เส้น เส้นละ 1 ตัว ปากถุงเปิดกว้าง 67 ซม.</li></ul>`)},
+ body:()=>T(`<ul><li>Slide the bag down over the bars until it sits on the pad.</li><li>Fold the 22 tabs flat outward. 2 concrete nails with washers through each tab into the pad.</li><li>Top edge: 1 cable tie to each of the 8 G bars. The top stays open, 67 cm across.</li></ul>`,`<ul><li>สวมถุงลงครอบเหล็ก จนถุงวางบนฐาน</li><li>พับแถบ 22 แถบออกด้านนอกให้ราบ ตอกตะปูคอนกรีตพร้อมแหวน แถบละ 2 ตัว ลงในฐาน</li><li>ขอบบน: เคเบิ้ลไทร์ผูกกับเหล็ก G ทั้ง 8 เส้น เส้นละ 1 ตัว ปากถุงเปิดกว้าง 67 ซม.</li></ul>`)},
 
-// 6 soil on the skirt
-{t:()=>T('Pin the tabs with soil','ถมดินทับแถบ'),
- fig:()=>{let s=ground()+liner()+pad()+cage({blocks:false,wheels:true})+bag({nails:true});
-  [-1,1].forEach(sd=>{const X=r=>CX+sd*r*S,a=-0.35,b=-0.20;s+=`<path d="M${X(coneR(a))} ${Y(a)} L${X(BAG.rb-(BAG.rb-BAG.rt)*(0.15/0.35))} ${Y(b)} L${X(1)} ${Y(b)} L${X(1)} ${Y(a)}Z" fill="#a37c4e" stroke="#7b5a35"/>`});
-  s+=I.shovel(Xr(1)+60,GY-8)+arrow(Xr(1)+40,GY-60,Xr(0.85),Y(-0.22)-6);
-  s+=I.tamper(Xl(0.82),Y(-0.20)-2);
-  s+=dim(Xr(1)+26,Y(-0.35),Xr(1)+26,Y(-0.20),'15 cm',{dx:10,a:'start',s:16});
-  s+=tx(Xl(0.82),Y(-0.27)+5,T('soil','ดิน'),{s:15,w:700,f:'#fff',nohalo:1});
-  s+=badge(CX,60,T('soil first, no concrete yet','ถมดินก่อน ยังไม่เทปูน'),{s:20});
-  s+=tag(T('SIDE VIEW','ภาพตัด'));return svg(s)},
- body:()=>T(`<ul><li>Shovel 15 cm of soil all round, on top of the tabs and against the bag.</li><li>Tamp it hard. The weight holds the bag down.</li></ul>`,`<ul><li>ตักดินลงรอบถุง หนา 15 ซม. ทับแถบและชิดถุง</li><li>กระทุ้งให้แน่น น้ำหนักดินกดถุงไว้</li></ul>`)},
-
-// 7 fill cone
-{t:()=>T('Fill: concrete inside, soil outside','เทปูนในถุง ถมดินรอบนอก'),
+// 6 fill cone with concrete
+{t:()=>T('Fill the cone with concrete','เทปูนในถุงกรวย'),
  fig:()=>{let s=ground()+liner()+pad();
-  const L=[[-0.35,-0.20],[-0.20,-0.05],[-0.05,0]];
-  L.forEach(([a,b],i)=>{const ra=BAG.rb-(BAG.rb-BAG.rt)*((a+0.35)/0.35),rb=BAG.rb-(BAG.rb-BAG.rt)*((b+0.35)/0.35);
-   [-1,1].forEach(sd=>{const X=r=>CX+sd*r*S;s+=`<path d="M${X(ra)} ${Y(a)} L${X(rb)} ${Y(b)} L${X(1)} ${Y(b)} L${X(1)} ${Y(a)}Z" fill="${i%2?'#a37c4e':'#b48a5a'}" stroke="#7b5a35" stroke-width="1"/>`});
-   s+=`<path d="M${Xl(ra)} ${Y(a)} L${Xl(rb)} ${Y(b)} L${Xr(rb)} ${Y(b)} L${Xr(ra)} ${Y(a)}Z" fill="${i%2?C.concL:C.conc}"/>`});
+  s+=`<path d="M${Xl(BAG.rb)} ${Y(-0.35)} L${Xl(BAG.rt)} ${Y(0)} L${Xr(BAG.rt)} ${Y(0)} L${Xr(BAG.rb)} ${Y(-0.35)}Z" fill="${C.conc}"/>`;
   s+=cage({blocks:false,wheels:false})+bag();
-  // order chips
-  const seq=[[T('soil','ดิน'),'#a37c4e'],[T('concrete','ปูน'),C.conc],[T('soil','ดิน'),'#a37c4e'],[T('concrete','ปูน'),C.conc],[T('soil','ดิน'),'#a37c4e'],[T('concrete','ปูน'),C.conc]];
-  seq.forEach(([t,c],k)=>{const x=20+k*110;s+=`<rect x="${x}" y="40" width="96" height="34" rx="6" fill="${c}"/>`+tx(x+48,62,(Math.floor(k/2)+1)+' '+t,{s:14,w:800,f:'#fff',nohalo:1})+(k<5?arrow(x+97,57,x+109,57,C.ink,2):'')});
-  s+=I.pan(Xl(0.45),Y(0)-50)+arrow(Xl(0.45),Y(0)-44,Xl(0.15),Y(0)-6);
+  s+=I.pan(Xl(0.55),Y(0)-60)+arrow(Xl(0.55),Y(0)-54,Xl(0.18),Y(0)-6);
+  s+=I.stick(Xr(0.15),Y(0)+10);
   s+=dim(Xr(1)+26,Y(-0.35),Xr(1)+26,Y(0),'35 cm',{dx:10,a:'start',s:16});
-  s+=badge(680,130,T('x2 batches','x2 ครั้ง'),{s:22});
-  s+=tag('');return svg(s)},
- body:()=>T(`<ul><li>15 cm concrete in through the top, push a stick up and down.</li><li>Next 15 cm of soil outside, tamp. Then concrete again. Repeat to ground level.</li><li>Concrete never higher than the soil outside.</li></ul>`,`<ul><li>เทปูนทางปากถุง 15 ซม. ใช้ไม้กระทุ้งขึ้นลง</li><li>ถมดินรอบนอกอีก 15 ซม. กระทุ้ง แล้วเทปูนอีกชั้น ทำซ้ำจนถึงระดับดิน</li><li>ปูนในถุงห้ามสูงกว่าดินรอบนอก</li></ul>`)},
+  s+=tx(Xl(0.98)+4,Y(-0.27),T('empty, no soil yet','ว่างไว้ ยังไม่ถมดิน'),{s:13,w:700,f:C.q,a:'start'});
+  s+=badge(CX,60,T('x2 batches, all at once','x2 ครั้ง เทรวดเดียว'),{s:22});
+  s+=tag(T('SIDE VIEW','ภาพตัด'));return svg(s)},
+ body:()=>T(`<ul><li>No soil yet. The nails and ties hold the bag.</li><li>Pour concrete through the top until it is level with the ground. Push a stick up and down around the bars.</li><li>Leave the bars sticking up.</li></ul>`,`<ul><li>ยังไม่ถมดิน ตะปูและเคเบิ้ลไทร์ยึดถุงไว้</li><li>เทปูนทางปากถุงจนเสมอระดับดิน ใช้ไม้กระทุ้งขึ้นลงรอบเหล็ก</li><li>เหล็กที่โผล่ไว้ ห้ามตัด</li></ul>`)},
 
-// 8 cure
+// 7 cure
 {t:()=>T('Keep it wet 2 days','บ่มน้ำ 2 วัน'),
  fig:()=>{let s=ground()+liner()+pad();
-  [-1,1].forEach(sd=>{const X=r=>CX+sd*r*S;s+=`<path d="M${X(BAG.rb)} ${Y(-0.35)} L${X(BAG.rt)} ${Y(0)} L${X(1)} ${Y(0)} L${X(1)} ${Y(-0.35)}Z" fill="#a37c4e"/>`});
-  s+=`<path d="M${Xl(BAG.rb)} ${Y(-0.35)} L${Xl(BAG.rt)} ${Y(0)} L${Xr(BAG.rt)} ${Y(0)} L${Xr(BAG.rb)} ${Y(-0.35)}Z" fill="${C.conc}"/>`+bag({nails:false,ties:false});
-  s+=`<path d="M${Xl(BAG.rt)} ${Y(0)} L${Xl(G.r1)} ${Y(G.j1)} L${Xr(G.r1)} ${Y(G.j1)} L${Xr(BAG.rt)} ${Y(0)}" fill="none" stroke="${C.q}" stroke-width="2" stroke-dasharray="6 5"/>`;
+  s+=`<path d="M${Xl(BAG.rb)} ${Y(-0.35)} L${Xl(BAG.rt)} ${Y(0)} L${Xr(BAG.rt)} ${Y(0)} L${Xr(BAG.rb)} ${Y(-0.35)}Z" fill="${C.conc}"/>`+bag({ties:false});
   [-1,1].forEach(sd=>{const X=r=>CX+sd*r*S;s+=`<polyline points="${X(0.27)},${Y(0)} ${X(0.094)},${Y(0.272)} ${X(0.094)},${Y(0.672)}" fill="none" stroke="${C.db}" stroke-width="4"/><polyline points="${X(0.06)},${Y(0)} ${X(0.06)},${Y(0.754)}" fill="none" stroke="${C.db}" stroke-width="4"/>`});
-  s+=tx(Xr(0.3),Y(0.18),T('later, with the pedestal','ทำทีหลัง พร้อมฐานตั้ง'),{s:14,w:700,a:'start',f:C.q});
   s+=I.bucket(Xl(0.5),Y(0)-30,C.water,0.8,1.2)+`<path d="M${Xl(0.42)} ${Y(0)-60} Q${Xl(0.3)} ${Y(0)-50} ${Xl(0.22)} ${Y(0)-4}" stroke="${C.water}" stroke-width="5" fill="none"/>`;
+  s+=`<path d="M${Xl(BAG.rt)} ${Y(0)-3} h${2*BAG.rt*S}" stroke="#c9b27a" stroke-width="7"/>`+tx(Xr(0.4),Y(0)-14,T('wet sack','กระสอบเปียก'),{s:14,w:700,a:'start'});
   s+=I.sun(120,70)+I.sun(220,70)+tx(170,130,T('2 days','2 วัน'),{s:22,w:800});
-  s+=tag('');return svg(s)},
- body:()=>T(`<ul><li>Wet the top morning and evening for 2 days. Cover with a wet sack.</li><li>Leave the bag in the ground. Bars stay sticking up for the pedestal.</li></ul>`,`<ul><li>รดน้ำด้านบนเช้า-เย็น 2 วัน คลุมกระสอบเปียก</li><li>ไม่ต้องเอาถุงออก เหล็กที่โผล่ไว้ต่อฐานตั้ง</li></ul>`)}
+  s+=tag(T('SIDE VIEW','ภาพตัด'));return svg(s)},
+ body:()=>T(`<ul><li>Wet the top morning and evening for 2 days. Keep a wet sack on it.</li></ul>`,`<ul><li>รดน้ำด้านบนเช้า-เย็น 2 วัน คลุมกระสอบเปียกไว้</li></ul>`)},
+
+// 8 backfill
+{t:()=>T('Fill the hole with soil','ถมดินรอบกรวย'),
+ fig:()=>{let s=ground()+liner()+pad();
+  s+=`<path d="M${Xl(BAG.rb)} ${Y(-0.35)} L${Xl(BAG.rt)} ${Y(0)} L${Xr(BAG.rt)} ${Y(0)} L${Xr(BAG.rb)} ${Y(-0.35)}Z" fill="${C.conc}"/>`;
+  [[-0.35,-0.20],[-0.20,-0.05],[-0.05,0]].forEach(([a,b],i)=>{const ra=BAG.rb-(BAG.rb-BAG.rt)*((a+0.35)/0.35),rb=BAG.rb-(BAG.rb-BAG.rt)*((b+0.35)/0.35);
+   [-1,1].forEach(sd=>{const X=r=>CX+sd*r*S;s+=`<path d="M${X(ra)} ${Y(a)} L${X(rb)} ${Y(b)} L${X(1)} ${Y(b)} L${X(1)} ${Y(a)}Z" fill="${i%2?'#a37c4e':'#b48a5a'}" stroke="#7b5a35" stroke-width="1"/>`})});
+  s+=bag({ties:false});
+  [-1,1].forEach(sd=>{const X=r=>CX+sd*r*S;s+=`<polyline points="${X(0.27)},${Y(0)} ${X(0.094)},${Y(0.272)} ${X(0.094)},${Y(0.672)}" fill="none" stroke="${C.db}" stroke-width="4"/><polyline points="${X(0.06)},${Y(0)} ${X(0.06)},${Y(0.754)}" fill="none" stroke="${C.db}" stroke-width="4"/>`});
+  [[-0.275,'1'],[-0.125,'2']].forEach(([h,n])=>s+=tx(Xl(1)-24,Y(h)+6,n,{s:16,w:800,f:'#fff',nohalo:1}));
+  s+=dim(Xr(1)+26,Y(-0.35),Xr(1)+26,Y(-0.20),'15',{dx:10,a:'start',s:16})+dim(Xr(1)+60,Y(-0.20),Xr(1)+60,Y(-0.05),'15',{dx:10,a:'start',s:16});
+  s+=I.shovel(Xr(1)+40,GY-60)+I.tamper(Xl(0.8),Y(0)-4);
+  s+=tx(Xr(0.3),Y(0.25),T('cone top + pedestal: next stage','ยอดกรวย + ฐานตั้ง: ขั้นต่อไป'),{s:14,w:700,a:'start',f:C.q});
+  s+=tag(T('SIDE VIEW · cm','ภาพตัด · ซม.'));return svg(s)},
+ body:()=>T(`<ul><li>After the 2 days. Soil in 15 cm layers, tamp each layer hard, up to ground level.</li><li>Leave the bag in the ground.</li></ul>`,`<ul><li>หลังครบ 2 วัน ถมดินทีละชั้น 15 ซม. กระทุ้งแน่นทุกชั้น จนถึงระดับดิน</li><li>ไม่ต้องเอาถุงออก</li></ul>`)}
 ];
 
 // ---------- stepper ----------
