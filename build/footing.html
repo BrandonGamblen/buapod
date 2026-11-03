@@ -166,13 +166,13 @@ const steps=[
   s+=tx(x0+495*px,y-28,'495',{s:12,w:700,f:C.str});
   const plan=[['A','A','D'],['A','A','D'],['B','B','F'],['B','B','F'],['G','G','G'],['G','G','G'],['G','G','C'],['C','C','C'],['F','F','D','E','E'],['D','E','E']];
   plan.forEach((p,ri)=>{let x=x0,cum=0;const nm=Math.floor(ri/2)+1+(ri%2?'b':'a');s+=tx(x0-12,y+21,nm,{a:'end',s:15,w:800});
-   p.forEach(k=>{const w=len[k]*px;s+=`<rect x="${x}" y="${y}" width="${w-2}" height="30" fill="${col[k]}" rx="3"/>`+tx(x+w/2,y+20,w<70?k:k+' '+len[k],{s:12,w:700,f:'#fff',nohalo:1});x+=w;cum+=len[k];
+   p.forEach(k=>{const w=len[k]*px;s+=`<rect x="${x}" y="${y}" width="${w-2}" height="30" fill="${col[k]}" rx="3"/>`+tx(x+w/2,y+20,w<70?k:k+' '+len[k]+' cm',{s:12,w:700,f:'#fff',nohalo:1});x+=w;cum+=len[k];
     s+=`<line x1="${x-1}" y1="${y-3}" x2="${x-1}" y2="${y+33}" stroke="${C.str}" stroke-width="2"/>`+tx(x-1,y+44,cum,{s:10,w:700,f:C.str})});
    const rest=x0+495*px-x;if(rest>2)s+=`<rect x="${x}" y="${y}" width="${rest}" height="30" fill="url(#hatch)" stroke="#bbb"/>`;
    if(ri%2===1&&ri<9)s+=`<line x1="20" y1="${y+49}" x2="780" y2="${y+49}" stroke="#e4dfd3"/>`;
    y+=50});
   s+=tx(x0+495*px+8,165,'DB10',{a:'start',s:13,w:700,f:C.db})+tx(14,y+16,T('Bar 6 = RB9 (straight, not folded):','เส้นที่ 6 = RB9 (ตรง ไม่พับ):'),{a:'start',s:13,w:700,f:C.q});
-  {let x=x0+230;[['H',294],['J',162]].forEach(([k,l])=>{const w=l*0.7;s+=`<rect x="${x}" y="${y+2}" width="${w-2}" height="22" fill="${col[k]}" rx="3"/>`+tx(x+w/2,y+18,k+' '+l,{s:12,w:700,f:'#fff',nohalo:1});x+=w})}
+  {let x=x0+230;[['H',294],['J',162]].forEach(([k,l])=>{const w=l*0.7;s+=`<rect x="${x}" y="${y+2}" width="${w-2}" height="22" fill="${col[k]}" rx="3"/>`+tx(x+w/2,y+18,k+' '+l+' cm',{s:12,w:700,f:'#fff',nohalo:1});x+=w})}
   s=`<defs><pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#f1eee6"/><line x1="0" y1="0" x2="0" y2="8" stroke="#ccc" stroke-width="3"/></pattern></defs>`+s;
   const cnt={H:1,J:1};plan.forEach(p=>p.forEach(q=>cnt[q]=(cnt[q]||0)+1));
   const sy=y+44;Object.keys(len).forEach((k,i)=>{const cx=x0+i*78;s+=`<rect x="${cx-8}" y="${sy}" width="70" height="40" rx="6" fill="${col[k]}"/>`+tx(cx+27,sy+18,k,{s:15,w:800,f:'#fff',nohalo:1})+tx(cx+27,sy+35,'x'+cnt[k],{s:14,w:800,f:'#fff',nohalo:1})});
