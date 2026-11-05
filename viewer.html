@@ -188,10 +188,11 @@ groups.core.add(ped(panel(kS,kUB,matPly,k=>[PRW,PT(Yv[k])])));
 // slats follow the knee and the backrest sweep in short flat steps; plywood only where curves are cut (ribs, U arms). Sizes my proposal.
 (function(){const SL=0.038,G=0.002,TT=0.019;const pos=[];const q=(A,B,C,D)=>{pos.push(A.x,A.y,A.z,B.x,B.y,B.z,C.x,C.y,C.z,A.x,A.y,A.z,C.x,C.y,C.z,D.x,D.y,D.z);};
   const kAtS=sv=>{for(let k=0;k<N;k++)if(S[k+1]>=sv)return k+(sv-S[k])/Math.max(1e-9,S[k+1]-S[k]);return N;};
-  const slat=(sa,sb,d0,d1)=>{const ka=kAtS(sa),kb=kAtS(sb);const c=(k,d,e)=>at(k,d,e?thB(k):thA(k));const P=[c(ka,d0,0),c(kb,d0,0),c(kb,d0,1),c(ka,d0,1),c(ka,d1,0),c(kb,d1,0),c(kb,d1,1),c(ka,d1,1)];
+  const slat=(sa,sb,d0,d1,e0,e1)=>{const ka=kAtS(sa),kb=kAtS(sb);if(e0===undefined){e0=d0;e1=d1;}const c=(k,d,e)=>at(k,d,e?thB(k):thA(k));const P=[c(ka,d0,0),c(kb,e0,0),c(kb,e0,1),c(ka,d0,1),c(ka,d1,0),c(kb,e1,0),c(kb,e1,1),c(ka,d1,1)];
     q(P[0],P[1],P[2],P[3]);q(P[4],P[7],P[6],P[5]);q(P[0],P[4],P[5],P[1]);q(P[3],P[2],P[6],P[7]);q(P[1],P[5],P[6],P[2]);q(P[0],P[3],P[7],P[4]);};
   const s0=S[iShin0],s1=S[kUB];const dAt=sv=>dDoor(Math.round(kAtS(sv)))[1];
-  for(let sv=s0;sv+SL<=s1;sv+=SL+G){slat(sv,sv+SL,-0.002,TT-0.002);const D=dAt(sv+SL/2);slat(sv,sv+SL,D-TT+0.002,D+0.002);}
+  const dS=sv=>{const k=kAtS(sv),k0=Math.floor(k),f=k-k0;return dDoor(k0)[1]*(1-f)+dDoor(Math.min(N,k0+1))[1]*f;}; /* outer slats follow the door's depth at both ends, so no steps at the edges */
+  for(let sv=s0;sv+SL<=s1;sv+=SL+G){slat(sv,sv+SL,-0.002,TT-0.002);const Da=dS(sv),Db=dS(sv+SL);slat(sv,sv+SL,Da-TT+0.002,Da+0.002,Db-TT+0.002,Db+0.002);}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.computeVertexNormals();
   const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:0xa9763f,roughness:0.8,side:THREE.DoubleSide,flatShading:true}));groups.core.add(ped(m));pickables.push(m);})(); // outer part up to the sill line; the inner 15 mm is the window recess, as in the concrete gores
 groups.core.add(panel(kS,iTip,matTrans)); // translucent wall from the recess floor up; its edge runs 20 mm into the recess behind the concrete lip
@@ -206,15 +207,16 @@ function strip(thE,wSign,width,color,kA,kB,w0,d0,d1){kA=kA??iBotTip;kB=kB??iTip;
   const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color,roughness:0.7,side:THREE.DoubleSide}));pickables.push(m);return m;
 }
 // concrete pedestal runs from the bottom up to joint 7 (top of the back-corner curve)
+const doorEdge=m=>{m.userData.doorEdge=true;return m;}; /* door-edge rib strips: replaced on the doors by the wood edge rails (2026-11-05) */
 const CONC=0xe6dcc6;let k7=iBotTip;for(let k=iBotTip;k<=N;k++){if(R[k]>=1.349&&Yv[k]>=0.15){k7=k;break;}}
 function tagC(m,ply){m.userData.concrete=true;m.userData.ply=ply;return m;}
-groups.strips.add(ped(tagC(strip(TH,-1,SW,CONC,iBotTip,k7),0xb07a3c)));   // female: door gore only (fixed gores are concrete here)
-groups.strips.add(ped(tagC(strip(-TH,1,SW,CONC,iBotTip,k7),0xd8a464)));   // male: door gore only
+groups.strips.add(doorEdge(ped(tagC(strip(TH,-1,SW,CONC,iBotTip,k7),0xb07a3c))));   // female: door gore only (fixed gores are concrete here)
+groups.strips.add(doorEdge(ped(tagC(strip(-TH,1,SW,CONC,iBotTip,k7),0xd8a464))));   // male: door gore only
 // rib tongue: both plywood strips and the blade run 37 cm below joint 9 into the arm, down to the pour-1 top; concrete dowels through 3 holes lock them in
 let kT=kS; // plywood tongue runs down to the recess floor on the pour-1 top (48 cm below joint 9)
 const BLADE_EMBED=0.37;let kB=k9;while(kB>0&&S[k9]-S[kB]<BLADE_EMBED)kB--; // steel blade stays 37 cm into the arm (1.49 m blades, 4 per 6 m bar)
-groups.strips.add(ped(strip(TH,-1,SW,0xb07a3c,k7,kT)));   // joint 7 to the tongue: door gore only (fixed gores: concrete)
-groups.strips.add(ped(strip(-TH,1,SW,0xd8a464,k7,kT)));
+groups.strips.add(doorEdge(ped(strip(TH,-1,SW,0xb07a3c,k7,kT))));   // joint 7 to the tongue: door gore only (fixed gores: concrete)
+groups.strips.add(doorEdge(ped(strip(-TH,1,SW,0xd8a464,k7,kT))));
 groups.strips.add(strip(TH,-1,SW,0xb07a3c,kT,k9,0,-0.0015));   // tongue, cast into the arm; inner face stays visible inside the pod
 groups.strips.add(strip(-TH,1,SW,0xd8a464,kT,k9,0,-0.0015));
 groups.strips.add(strip(TH,-1,SW,0xb07a3c,k9,iTip,0,PWIN,RIB));groups.strips.add(strip(TH,-1,SW-0.010,0xb07a3c,k9,iTip,0,0,PWIN));   // female, 20 mm plywood, joint 9 to the tip; 10 x 15 mm rebate for the window edge
@@ -638,6 +640,7 @@ function updateDoor(){doorT+=(doorGoal-doorT)*0.07;hingeB.rotation.x=OPEN_B*door
   [doorHeader,doorFrame,leafB,leafT,leafT2].forEach(c=>{c.userData.planes.forEach((q,i)=>q.copy(c.userData.local[i]).applyMatrix4(c.matrixWorld));});}
 placeTread();
 [gore].concat(copyObjs).forEach(c=>c.traverse(o=>{if(o.userData.pedHide)o.visible=false;}));
+[leafT,leafT2,leafB].forEach(c=>c.traverse(o=>{if(o.userData.doorEdge)o.visible=false;}));
 // ---------- door mechanisms (user 2026-11-03): chunky wood you touch, good hardware inside the wood and the concrete jamb. Concept; sizes my proposal, not engineered. ----------
 // top leaf: steel shaft in 2 sealed flange bearings bolted through the steel blades of the 2 door-edge ribs; a 2x4-cased gas strut each side (end-of-stroke damping) balances the leaf;
 // a wooden drum (dia 30 cm) on the shaft and a stainless cable loop (in a conduit cast in the jamb arm) bring the handle down to a wooden grip sliding on a 2x4 rail beside the doorway,
@@ -650,13 +653,17 @@ const MECH={};
   // a car-style pull handle on the outside of each door releases that latch so the door swings free (top up on its gas dampers, bottom down onto its gas dampers). Sizes my proposal.
   const blk=new THREE.MeshStandardMaterial({color:0x1d1d1f,metalness:0.4,roughness:0.5});const chrome=new THREE.MeshStandardMaterial({color:0xcfd2d4,metalness:0.9,roughness:0.2});
   const line=(pts,m,parent)=>{const l=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),m);parent.add(l);return l;};const cabM=new THREE.LineDashedMaterial({color:0x8b1e1e,dashSize:0.02,gapSize:0.012});
-  // axle: fixed 25 mm steel axle across the top of the frame, held by 2 steel hangers bolted to a timber crosspiece on the header's inner face (header = concrete backrest above the door)
+  // axle: fixed 25 mm steel axle across the top of the door frame, hidden inside the wood head jamb below
   const AXL=2*half+0.06;const axle=new THREE.Mesh(new THREE.CylinderGeometry(0.0125,0.0125,AXL,16),steel);axle.rotation.z=Math.PI/2;axle.position.copy(PIVT);doorRoot.add(axle);
-  const zc=pRcY(CUT+0.06)-0.045;const cross=new THREE.Mesh(new THREE.BoxGeometry(2*half+0.24,0.09,0.09),wood);cross.position.set(0,CUT+0.075,zc);doorRoot.add(cross);
-  [-1,1].forEach(sd=>{const zz0=zc-0.045,zz1=PIVT.z+0.03;const hg=new THREE.Mesh(new THREE.BoxGeometry(0.008,0.13,zz1-zz0),steel);hg.position.set(sd*(half+0.012),PIVT.y+0.04,(zz0+zz1)/2);doorRoot.add(hg);
-    [0.035,-0.035].forEach(dz=>{const bt=new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.008,0.10,8),steel);bt.position.set(sd*(half-0.05),CUT+0.075,zc+dz);doorRoot.add(bt);});});
-  // hinge: 3 steel knuckles on the top door wrap the axle (bronze bushings inside)
-  [-0.18,0,0.18].forEach(x=>{const kn=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,0.09,16),steel);kn.rotation.z=Math.PI/2;kn.position.set(x,0,0);hingeT.add(kn);const tab=new THREE.Mesh(new THREE.BoxGeometry(0.09,0.06,0.008),steel);tab.position.set(x,-0.04,0.02);hingeT.add(tab);});
+  // concealed hinge (user 2026-11-05): no metal in sight. The axle runs inside a hardwood head jamb (60 mm tall, through the wall thickness) set in a recess along the
+  // underside of the concrete header, its ends in the side jambs. The door's top rail is a 56 mm round hardwood knuckle bored for the axle (bronze bushings inside); half of it sits in a matching cove in the head jamb.
+  {const W=2*half+0.07,Ri=pRcY(CUT)-0.004,Ro=pRcY(CUT)+PT(CUT)+0.004,H=0.06,n=24,pos=[],idx=[];
+   for(let i=0;i<=n;i++){const x=-W/2+W*i/n;const zi=Math.sqrt(Ri*Ri-x*x),zo=Math.sqrt(Ro*Ro-x*x);[[zi,CUT],[zo,CUT],[zo,CUT+H],[zi,CUT+H]].forEach(([z,y])=>pos.push(x,y,z));
+     if(i>0){const a=(i-1)*4,b=i*4;for(let j=0;j<4;j++){const j2=(j+1)%4;idx.push(a+j,a+j2,b+j2,a+j,b+j2,b+j);}}}
+   idx.push(0,1,2,0,2,3);const e=n*4;idx.push(e,e+2,e+1,e,e+3,e+2);
+   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();
+   const head=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:0x6b4423,roughness:0.8,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));doorRoot.add(head);
+   const kn=new THREE.Mesh(new THREE.CylinderGeometry(0.028,0.028,2*half-0.01,24),new THREE.MeshStandardMaterial({color:0x9b6a3a,roughness:0.8}));kn.rotation.z=Math.PI/2;hingeT.add(kn);}
   // top door dampers: gas spring with end damping, one each side; fixed end on a drop bracket from the header (y 0.625), moving end on a bracket at the door's inner bottom edge (y 0.30).
   // 325 mm closed, 541 mm open, stroke 216 mm (my calculation); about 110 N each lifts the 9 kg door open once the latch lets go and holds it at 100 deg (my estimate).
   const XS=0.225,AY=0.625,BY=SPLIT_Y,IN=0.09;const zIn=y=>pRcY(y)-IN;MECH.struts=[];
@@ -676,10 +683,10 @@ const MECH={};
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();
     const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color,roughness:0.8,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:off,polygonOffsetUnits:off}));parent.add(m);return m;};
   const O0=new THREE.Vector3();const inOpen=k=>Yv[k]>FLOOR+0.001&&Yv[k]<=CUT;
-  [1,-1].forEach(sd=>edgeStrip(sd,TH+0.0015,0.035,0.004,inOpen,doorRoot,O0,0x6b4423,-2)); // fixed wood frame, 4 mm proud of the wall faces
+  [1,-1].forEach(sd=>edgeStrip(sd,TH+0.0003,0.035,0.004,inOpen,doorRoot,O0,0x6b4423,-2)); // fixed wood frame, 4 mm proud of the wall faces
   // door edge stiles: 30 mm solid wood rail along each side of each door; it closes the door edge and hides the latch (pin enters through a slot)
   const inTop=k=>{const y=Yv[k];return (y>=SPLIT_Y&&y<=CUT)||(y<SPLIT_Y&&y>FLOOR+0.001&&R[k]>SPLIT_Z);};const inBot=k=>{const y=Yv[k];return y>FLOOR+0.001&&y<SPLIT_Y&&R[k]<=SPLIT_Z;};
-  [1,-1].forEach(sd=>{edgeStrip(sd,TH-0.0015,-0.030,-0.002,inTop,hingeT,PIVT,0x9b6a3a,1);edgeStrip(sd,TH-0.0015,-0.030,-0.002,inBot,hingeB,PIV,0x9b6a3a,1);});
+  [1,-1].forEach(sd=>{edgeStrip(sd,TH-0.0003,-0.030,0.002,inTop,hingeT,PIVT,0x9b6a3a,-1);edgeStrip(sd,TH-0.0003,-0.030,0.002,inBot,hingeB,PIV,0x9b6a3a,-1);});
   // Latches: Speedway Universal Slim-Line Bear Jaw Complete Door Latch Kit (#91602076). Car layout: each latch sits inside its door's right edge; the kit's striker pins are screwed into the right wood jamb.
   // Lokar SRK-4002 stainless return spring on each latch's release lever, inside the door. Release handles: Speedway #9103015 with 96 in cable, cables run inside the door to its own latch.
   const metal=new THREE.MeshStandardMaterial({color:0xc9c9c4,metalness:0.7,roughness:0.35});
@@ -705,7 +712,7 @@ const MECH={};
   [-1,1].forEach(sd=>{const t=new THREE.Object3D();t.position.set(sd*0.10,-0.22,0.395).sub(PIV);hingeB.add(t);MECH.struts.push({g:mkP(0.011,0.005,0.30,0.30,steel),a:new THREE.Vector3(sd*0.10,FLOOR-0.32,0.30),get b(){return doorRoot.worldToLocal(t.getWorldPosition(new THREE.Vector3()));}});});
   const bar=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,2*Math.sin(TH)*1.10-0.08,14),wood);bar.rotation.z=Math.PI/2;bar.position.set(0,0.035,1.10).sub(PIV);hingeB.add(bar);
   [-1,1].forEach(sd=>{const bk=new THREE.Mesh(new THREE.BoxGeometry(0.03,0.04,0.05),wood2);bk.position.set(sd*(Math.sin(TH)*1.10-0.05),0.02,1.10).sub(PIV);hingeB.add(bk);});
-  addLabel('Axle across the top on a timber crosspiece',PIVT.clone().add(new THREE.Vector3(0,0.16,-0.05)),'dim',groups.top);
+  addLabel('Concealed hinge: axle inside the wood head jamb',PIVT.clone().add(new THREE.Vector3(0,0.12,-0.05)),'dim',groups.top);
   addLabel('Gas damper, each side',new THREE.Vector3(XS+0.05,0.50,zIn(0.5)-0.05),'dim',groups.top);
   addLabel('Bear jaw latch in each door; striker pins in the wood frame',new THREE.Vector3(half+0.06,0.02,1.25),'dim',groups.top);
   addLabel('Top door release handles, bottom edge (outside and inside)',new THREE.Vector3(0.20,0.14,1.56),'dim',groups.top);
