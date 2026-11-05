@@ -687,14 +687,15 @@ const MECH={};
     g.add(new THREE.Mesh(new THREE.BoxGeometry(0.03,0.032,0.098),metal));const plate=new THREE.Mesh(new THREE.BoxGeometry(0.004,0.045,0.13),steel);plate.position.x=-0.017;g.add(plate);
     const spr=new THREE.Mesh(new THREE.CylinderGeometry(0.005,0.005,0.05,10),chrome);spr.rotation.x=Math.PI/2;spr.position.set(-0.01,0.0,-0.075);g.add(spr);return g;};
   const mkPin=p=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.008,0.04,12),chrome);m.rotation.z=Math.PI/2;m.position.copy(p);doorRoot.add(m);};
-  const mkR=(parent,origin,p,dir)=>{const g=new THREE.Group();g.position.copy(p).sub(origin);parent.add(g);g.lookAt(g.position.clone().add(dir));
+  // release handle: lever rests horizontal (across the door); base flush on the face it is screwed to; dir = outward normal of that face
+  const mkR=(parent,origin,p,dir)=>{const g=new THREE.Group();g.position.copy(p).sub(origin);parent.add(g);g.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),dir.clone().normalize());
     const base=new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,0.02,12),blk);base.rotation.x=Math.PI/2;base.position.z=0.01;g.add(base);
-    const lv=new THREE.Mesh(new THREE.BoxGeometry(0.018,0.075,0.012),blk);lv.position.set(0,-0.03,0.025);lv.rotation.x=-0.25;g.add(lv);return g;};
+    const lv=new THREE.Mesh(new THREE.BoxGeometry(0.075,0.018,0.012),blk);lv.position.set(0.035,0,0.024);g.add(lv);return g;};
   const cabL=(parent,origin,pts)=>line(pts.map(v=>v.clone().sub(origin)),cabM,parent).computeLineDistances();
-  // top door: latch low in its right edge (1.19 m above ground), long side vertical, handles on the bottom of the door, outside 1.17 m and inside 1.21 m above ground
+  // top door: latch low in its right edge (1.19 m above ground), long side vertical. Outside handle on the door's bottom edge face (0.97 m above ground closed; about 1.98 m and facing outward when open, reachable from below); inside handle on the inner face 1.21 m
   const LT=new THREE.Vector3(Math.sin(TH)*1.40-0.05,0.08,1.40);mkLatch(hingeT,PIVT,LT,Math.PI/2);mkPin(new THREE.Vector3(Math.sin(TH)*1.40-0.02,0.08,1.40));
-  const hTo=new THREE.Vector3(0.13,0.03,1.45),hTi=new THREE.Vector3(0.13,0.10,1.336);mkR(hingeT,PIVT,hTo,new THREE.Vector3(0,0,1));mkR(hingeT,PIVT,hTi,new THREE.Vector3(0,0,-1));
-  cabL(hingeT,PIVT,[hTo.clone().add(new THREE.Vector3(0,0,-0.03)),new THREE.Vector3(0.20,0.03,1.42),LT.clone().add(new THREE.Vector3(-0.01,-0.07,0.03))]);
+  const hTo=new THREE.Vector3(0.10,-0.142,1.31),hTi=new THREE.Vector3(0.13,0.10,1.336);mkR(hingeT,PIVT,hTo,new THREE.Vector3(0,-1,0));mkR(hingeT,PIVT,hTi,new THREE.Vector3(0,0,-1));
+  cabL(hingeT,PIVT,[hTo.clone().add(new THREE.Vector3(0,0.03,0)),new THREE.Vector3(0.20,-0.08,1.33),LT.clone().add(new THREE.Vector3(-0.01,-0.07,0.03))]);
   cabL(hingeT,PIVT,[hTi.clone().add(new THREE.Vector3(0,0,0.03)),new THREE.Vector3(0.20,0.05,1.36),LT.clone().add(new THREE.Vector3(-0.01,-0.07,0.03))]);
   // bottom door (steps): latch in its right edge inside the 60 mm seat edge (1.08 m), one handle on the seat top by the door edge: used from inside, and from outside once the top door is up
   const LB=new THREE.Vector3(Math.sin(TH)*1.12-0.05,-0.03,1.12);mkLatch(hingeB,PIV,LB);mkPin(new THREE.Vector3(Math.sin(TH)*1.12-0.02,-0.03,1.12));
