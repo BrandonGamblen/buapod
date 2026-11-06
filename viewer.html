@@ -5,7 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>บัว 1.0 · 3D model</title>
 <script>if(!(/[?&]build/.test(location.search)||location.hash==='#build'))document.documentElement.classList.add('pub','prep','touring');</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Charm:wght@700&display=swap" rel="stylesheet">
 <style>
+  #cap{position:fixed;left:0;right:0;top:5%;text-align:center;font-family:'Charm',serif;font-weight:700;font-size:clamp(26px,5.2vw,48px);color:#5a3410;text-shadow:0 1px 8px rgba(255,250,240,.9);opacity:0;transition:opacity .7s;pointer-events:none;z-index:6;padding:0 12px}
   html.pub #panel,html.pub .lbl{display:none!important}
   html.pub #bar button:not(#bDoor):not(#bFins):not(#bTour){display:none!important}
   html:not(.pub) #bTour{display:none}
@@ -30,6 +32,7 @@
 </style>
 </head>
 <body>
+<div id="cap">ครีบผ้าหมุนปิดคลุมด้านบน</div>
 <div id="app"></div>
 <div id="bar">
   <button id="bMeasure" class="measure">Measure</button>
@@ -868,29 +871,31 @@ window.__startTour=function(){const fov=camera.fov*Math.PI/180;let d0=size0/(2*M
   // swoop down to thigh height looking up into the doorway, move inside, pan across the seats, tilt up to the ceiling, back out through the doorway, finish the orbit.
   const PC=center.clone().add(new THREE.Vector3(0,0.15,0)),V=(x,y,z)=>new THREE.Vector3(x,y,z),sm=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x);};
   const orb=(az,el,d,tg)=>tg.clone().add(V(d*Math.cos(el)*Math.sin(az),d*Math.sin(el),d*Math.cos(el)*Math.cos(az)));
-  const AS=5*Math.PI-0.6,AE=5*Math.PI+0.55,PS=orb(AS,0.10,DF,CF); // AS: to the left of the door, seen from outside
-  const P1=V(0.10,GRADE+0.60,-2.25),T1=V(0,0.35,-1.3);            // thigh height outside, looking up into the doorway
+  const AS=5*Math.PI-0.6,AE=5*Math.PI+0.55,AR=5*Math.PI+0.15,PS=orb(AS,0.10,DF,CF); // AS: to the left of the door, seen from outside
+  const P1=V(0.10,GRADE+0.60,-2.25),T1=V(0,0.35,-1.3),TD=V(0,0.55,0.7);            // thigh height outside, looking up into the doorway
   const W=V(0,0.40,-1.37),P2=V(0,0.75,-0.35),R1=1.10,YS=0.05;        // W: centre of the doorway; P2: inside at seated eye height
   const seat=a=>V(R1*Math.sin(a),YS,R1*Math.cos(a)),A1=-75*Math.PI/180,A2=75*Math.PI/180,CEIL=V(0,1.9,0.25),MID=V(0,0.45,0.3);
   const L=(a,b,u)=>a.clone().lerp(b,sm(u));
   const fn=t=>{
     if(t<7.5){const e=sm(t/7.5),b=Math.sin(Math.PI*e);const tg=CF.clone().lerp(PC,b);return [orb(AF+(AS-AF)*e,0.10+1.10*b,DF*(1-0.12*b),tg),tg];}
-    if(t<9.5){const u=(t-7.5)/2;return [L(PS,P1,u),L(CF,T1,u)];}
-    if(t<11.5){const u=(t-9.5)/2,e=sm(u);const a=P1.clone().lerp(W,Math.min(1,e*2)),c=W.clone().lerp(P2,Math.max(0,e*2-1));return [e<0.5?a:c,L(T1,seat(A1),u)];} // straight through the middle of the doorway
-    if(t<14){const u=(t-11.5)/2.5;return [P2.clone(),seat(A1+(A2-A1)*sm(u))];}
-    if(t<16){const u=(t-14)/2;return [P2.clone(),L(seat(A2),CEIL,u)];}
-    if(t<18.5){const e=sm((t-16)/2.5);const p=e<0.5?P2.clone().lerp(W,e*2):W.clone().lerp(P1,e*2-1);return [p,L(CEIL,MID,(t-16)/2.5)];}
-    if(t<20){const u=(t-18.5)/1.5;return [L(P1,PS,u),L(MID,CF,u)];}
-    const e=sm((t-20)/2.6);return [orb(AS+(AE-AS)*e,0.10,DF,CF),CF.clone()];};
-  const T=7.5;TOUR_FOV=t=>40+32*(sm((t-9.8)/1.4)-sm((t-16.8)/1.4)); // wide lens inside the pod
-  const DB=()=>document.getElementById('bDoor');const EV=[[1.6,()=>{FIN.goal=45;}],[3.8,()=>{FIN.goal=0;}],[7.3,()=>{if(!doorGoal)DB().click();}],[19.0,()=>{if(doorGoal)DB().click();}]]; // fins close and reopen while the camera is still overhead; back at the start view the door opens, holds, closes (user 2026-11-05)
-  TOUR={t:0,last:performance.now(),fn,T,END:22.7,EV,i:0};controls.enabled=false;FIN.goal=0;if(doorGoal)document.getElementById('bDoor').click();document.documentElement.classList.add('touring');setPT(...fn(0));
+    if(t<9.5){const u=(t-7.5)/2;return [L(PS,P1,u),L(CF,TD,u)];}
+    if(t<11.7){const e=sm((t-9.5)/2.2);const p=e<0.5?P1.clone().lerp(W,e*2):W.clone().lerp(P2,e*2-1);return [p,TD.clone().lerp(seat(0),e)];} // in through the middle of the doorway, eyes on a point deep inside (no flip as it passes the frame)
+    if(t<16.7){const u=(t-11.7)/5;return [P2.clone(),seat(-A2*0.93*Math.sin(1.5*Math.PI*sm(u)))];} // pan across the seats: one way 70 deg, then across to 70 deg the other way
+    if(t<19.1){const u=(t-16.7)/2.4;return [P2.clone(),L(seat(A2*0.93),CEIL,u)];}
+    if(t<21.3){const e=sm((t-19.1)/2.2);const p=e<0.5?P2.clone().lerp(W,e*2):W.clone().lerp(P1,e*2-1);return [p,L(CEIL,MID,(t-19.1)/2.2)];}
+    if(t<23.3){const e=sm((t-21.3)/2);const a0=5*Math.PI+Math.atan2(P1.x,P1.z)-Math.PI,r0=Math.hypot(P1.x,P1.z),rr=DF*Math.cos(0.10),y1=CF.y+DF*Math.sin(0.10); // curve out round the figures to a later point on the orbit (user 2026-11-05)
+      const a=a0+(AR-a0)*e,r=r0+(rr-r0)*e;return [V(r*Math.sin(a)+CF.x*e,P1.y+(y1-P1.y)*e,r*Math.cos(a)+CF.z*e),L(MID,CF,(t-21.3)/2)];}
+    const e=sm((t-23.3)/2.2);return [orb(AR+(AE-AR)*e,0.10,DF,CF),CF.clone()];};
+  const T=7.5;TOUR_FOV=t=>40+32*(sm((t-9.8)/1.4)-sm((t-19.7)/1.4)); // wide lens inside the pod
+  const DB=()=>document.getElementById('bDoor');const EV=[[1.6,()=>{FIN.goal=45;}],[3.8,()=>{FIN.goal=0;}],[7.3,()=>{if(!doorGoal)DB().click();}],[21.6,()=>{if(doorGoal)DB().click();}]]; // fins close and reopen while the camera is still overhead; back at the start view the door opens, holds, closes (user 2026-11-05)
+  TOUR={t:0,last:performance.now(),fn,T,END:25.6,EV,i:0};controls.enabled=false;FIN.goal=0;if(doorGoal)document.getElementById('bDoor').click();document.documentElement.classList.add('touring');setPT(...fn(0));
   const skip=()=>endTour(true);renderer.domElement.addEventListener('pointerdown',skip,{once:true});TOUR.skip=skip;};
 function endTour(skipped){if(!TOUR)return;const K=TOUR.fn(TOUR.END);renderer.domElement.removeEventListener('pointerdown',TOUR.skip);
-  if(skipped){FIN.goal=0;if(doorGoal)document.getElementById('bDoor').click();}setPT(...K);TOUR=null;controls.enabled=true;document.documentElement.classList.remove('touring');}
+  if(skipped){FIN.goal=0;if(doorGoal)document.getElementById('bDoor').click();}setPT(...K);TOUR=null;controls.enabled=true;{const cp=document.getElementById('cap');if(cp)cp.style.opacity=0;}document.documentElement.classList.remove('touring');}
 let TOUR_FOV=null;function setPT(p,tg){controls.target.copy(tg);camera.position.copy(p);camera.lookAt(tg);const f=TOUR&&TOUR_FOV?TOUR_FOV(TOUR.t):40;if(camera.fov!==f){camera.fov=f;camera.updateProjectionMatrix();}}
 function setCam(az,el,d,tg){controls.target.copy(tg);camera.position.set(tg.x+d*Math.cos(el)*Math.sin(az),tg.y+d*Math.sin(el),tg.z+d*Math.cos(el)*Math.cos(az));camera.lookAt(tg);}
 function tourStep(){const now=performance.now();TOUR.t+=Math.min((now-TOUR.last)/1000,window.__tourCap||0.05);TOUR.last=now;const t=TOUR.t; /* clock capped per frame so a slow first frame (shader compile) does not skip the tour */while(TOUR.i<TOUR.EV.length&&t>=TOUR.EV[TOUR.i][0]){TOUR.EV[TOUR.i][1]();TOUR.i++;}
+  const cp=document.getElementById('cap');if(cp)cp.style.opacity=(t>1.3&&t<6.0)?1:0; // caption while the fins close over the roof and reopen
   if(t>=TOUR.END){endTour(false);return;}setPT(...TOUR.fn(t));}
 const _tick=tick;tick=function(){if(TOUR)tourStep();_tick();};
 tick();
