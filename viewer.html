@@ -864,20 +864,34 @@ let TOUR=null;
 window.__startTour=function(){const fov=camera.fov*Math.PI/180;let d0=size0/(2*Math.tan(fov/2))*0.85;if(camera.aspect<1)d0/=Math.max(camera.aspect,0.62);
   const BB=new THREE.Box3();[gore,groups.top,groups.people,groups.footing,groups.ped].forEach(g=>{if(g)BB.union(new THREE.Box3().setFromObject(g));});const CF=BB.getCenter(new THREE.Vector3()),RS=BB.getSize(new THREE.Vector3()).length()/2;
   const vf=camera.fov*Math.PI/180,hf=2*Math.atan(Math.tan(vf/2)*camera.aspect),DF=RS/Math.sin(Math.min(vf,hf)/2)*0.92,AF=3*Math.PI+0.55; // start/end: angled at the door (door gore faces -z), far enough for the whole pod and both figures
-  // user 2026-11-05: start at the final view; swoop up and to the right, orbit over the roof while the fins close and open, come down round the other side back to the start. 10 s.
-  const PC=center.clone().add(new THREE.Vector3(0,0.15,0)),T=10;
-  const DZ=new THREE.Vector3(0,0.35,-1.3),dZ=2.3,sm=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x);};
-  const fn=t=>{if(t<=T){const e=sm(t/T),b=Math.sin(Math.PI*e);return [AF+2*Math.PI*e,0.10+1.10*b,DF*(1-0.12*b),CF.clone().lerp(PC,b)];}
-    const z=t<13.2?sm((t-T)/1.5):1-sm((t-13.2)/1.8); // zoom in so the door frame fills the view, hold while the door opens, zoom out as it closes (user 2026-11-05)
-    return [AF+2*Math.PI,0.10+0.22*z,DF+(dZ-DF)*z,CF.clone().lerp(DZ,z)];};
-  const DB=()=>document.getElementById('bDoor');const EV=[[2.0,()=>{FIN.goal=45;}],[4.6,()=>{FIN.goal=0;}],[11.3,()=>{if(!doorGoal)DB().click();}],[13.2,()=>{if(doorGoal)DB().click();}]]; // fins close and reopen while the camera is still overhead; back at the start view the door opens, holds, closes (user 2026-11-05)
-  TOUR={t:0,last:performance.now(),fn,T,END:15.2,EV,i:0};controls.enabled=false;FIN.goal=0;if(doorGoal)document.getElementById('bDoor').click();document.documentElement.classList.add('touring');setCam(...fn(0));
+  // user 2026-11-05: start at the final view; swoop up and right, orbit over the roof while the fins close and reopen; stop to the left of the door as it opens;
+  // swoop down to thigh height looking up into the doorway, move inside, pan across the seats, tilt up to the ceiling, back out through the doorway, finish the orbit.
+  const PC=center.clone().add(new THREE.Vector3(0,0.15,0)),V=(x,y,z)=>new THREE.Vector3(x,y,z),sm=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x);};
+  const orb=(az,el,d,tg)=>tg.clone().add(V(d*Math.cos(el)*Math.sin(az),d*Math.sin(el),d*Math.cos(el)*Math.cos(az)));
+  const AS=5*Math.PI-0.6,AE=5*Math.PI+0.55,PS=orb(AS,0.10,DF,CF); // AS: to the left of the door, seen from outside
+  const P1=V(0.10,GRADE+0.60,-2.25),T1=V(0,0.35,-1.3);            // thigh height outside, looking up into the doorway
+  const W=V(0,0.40,-1.37),P2=V(0,0.75,-0.35),R1=1.10,YS=0.05;        // W: centre of the doorway; P2: inside at seated eye height
+  const seat=a=>V(R1*Math.sin(a),YS,R1*Math.cos(a)),A1=-75*Math.PI/180,A2=75*Math.PI/180,CEIL=V(0,1.9,0.25),MID=V(0,0.45,0.3);
+  const L=(a,b,u)=>a.clone().lerp(b,sm(u));
+  const fn=t=>{
+    if(t<7.5){const e=sm(t/7.5),b=Math.sin(Math.PI*e);const tg=CF.clone().lerp(PC,b);return [orb(AF+(AS-AF)*e,0.10+1.10*b,DF*(1-0.12*b),tg),tg];}
+    if(t<9.5){const u=(t-7.5)/2;return [L(PS,P1,u),L(CF,T1,u)];}
+    if(t<11.5){const u=(t-9.5)/2,e=sm(u);const a=P1.clone().lerp(W,Math.min(1,e*2)),c=W.clone().lerp(P2,Math.max(0,e*2-1));return [e<0.5?a:c,L(T1,seat(A1),u)];} // straight through the middle of the doorway
+    if(t<14){const u=(t-11.5)/2.5;return [P2.clone(),seat(A1+(A2-A1)*sm(u))];}
+    if(t<16){const u=(t-14)/2;return [P2.clone(),L(seat(A2),CEIL,u)];}
+    if(t<18.5){const e=sm((t-16)/2.5);const p=e<0.5?P2.clone().lerp(W,e*2):W.clone().lerp(P1,e*2-1);return [p,L(CEIL,MID,(t-16)/2.5)];}
+    if(t<20){const u=(t-18.5)/1.5;return [L(P1,PS,u),L(MID,CF,u)];}
+    const e=sm((t-20)/2.6);return [orb(AS+(AE-AS)*e,0.10,DF,CF),CF.clone()];};
+  const T=7.5;TOUR_FOV=t=>40+32*(sm((t-9.8)/1.4)-sm((t-16.8)/1.4)); // wide lens inside the pod
+  const DB=()=>document.getElementById('bDoor');const EV=[[1.6,()=>{FIN.goal=45;}],[3.8,()=>{FIN.goal=0;}],[7.3,()=>{if(!doorGoal)DB().click();}],[19.0,()=>{if(doorGoal)DB().click();}]]; // fins close and reopen while the camera is still overhead; back at the start view the door opens, holds, closes (user 2026-11-05)
+  TOUR={t:0,last:performance.now(),fn,T,END:22.7,EV,i:0};controls.enabled=false;FIN.goal=0;if(doorGoal)document.getElementById('bDoor').click();document.documentElement.classList.add('touring');setPT(...fn(0));
   const skip=()=>endTour(true);renderer.domElement.addEventListener('pointerdown',skip,{once:true});TOUR.skip=skip;};
 function endTour(skipped){if(!TOUR)return;const K=TOUR.fn(TOUR.END);renderer.domElement.removeEventListener('pointerdown',TOUR.skip);
-  if(skipped){FIN.goal=0;if(doorGoal)document.getElementById('bDoor').click();}setCam(...K);TOUR=null;controls.enabled=true;document.documentElement.classList.remove('touring');}
+  if(skipped){FIN.goal=0;if(doorGoal)document.getElementById('bDoor').click();}setPT(...K);TOUR=null;controls.enabled=true;document.documentElement.classList.remove('touring');}
+let TOUR_FOV=null;function setPT(p,tg){controls.target.copy(tg);camera.position.copy(p);camera.lookAt(tg);const f=TOUR&&TOUR_FOV?TOUR_FOV(TOUR.t):40;if(camera.fov!==f){camera.fov=f;camera.updateProjectionMatrix();}}
 function setCam(az,el,d,tg){controls.target.copy(tg);camera.position.set(tg.x+d*Math.cos(el)*Math.sin(az),tg.y+d*Math.sin(el),tg.z+d*Math.cos(el)*Math.cos(az));camera.lookAt(tg);}
 function tourStep(){const now=performance.now();TOUR.t+=Math.min((now-TOUR.last)/1000,window.__tourCap||0.05);TOUR.last=now;const t=TOUR.t; /* clock capped per frame so a slow first frame (shader compile) does not skip the tour */while(TOUR.i<TOUR.EV.length&&t>=TOUR.EV[TOUR.i][0]){TOUR.EV[TOUR.i][1]();TOUR.i++;}
-  if(t>=TOUR.END){endTour(false);return;}setCam(...TOUR.fn(t));}
+  if(t>=TOUR.END){endTour(false);return;}setPT(...TOUR.fn(t));}
 const _tick=tick;tick=function(){if(TOUR)tourStep();_tick();};
 tick();
 })();
