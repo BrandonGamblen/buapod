@@ -4,7 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Lotus 1.0 · 3D model</title>
+<script>if(!(/[?&]build/.test(location.search)||location.hash==='#build'))document.documentElement.classList.add('pub','prep','touring');</script>
 <style>
+  html.pub #panel,html.pub .lbl{display:none!important}
+  html.pub #bar button:not(#bDoor):not(#bFins){display:none!important}
+  html.touring #bar{display:none!important}
+  html.prep canvas{visibility:hidden}
   html,body{margin:0;height:100%;background:#f4f1ea;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#2c2c2a;overflow:hidden}
   #app{position:fixed;inset:0}
   canvas{display:block;touch-action:none}
@@ -625,7 +630,7 @@ const groundMesh=new THREE.Mesh(new THREE.CircleGeometry(3.2,64),new THREE.MeshS
 // bottom leaf opens until its lowest point touches the ground
 let OPEN_B=0;(function(){const pts=[];for(let k=0;k<=N;k++){if(Yv[k]>=FLOOR&&Yv[k]<=SPLIT_Y&&R[k]<SPLIT_Z){for(const d of [0,RIB]){const r=R[k]+NR[k]*d,y=Yv[k]+NY[k]*d;if(r<SPLIT_Z+0.01)pts.push([r-PIV.z,y-PIV.y]);}}}
   for(let a=0;a<=Math.PI;a+=0.005){let hit=false;for(const [dz,dy] of pts){const y2=dy*Math.cos(a)-dz*Math.sin(a),z2=dy*Math.sin(a)+dz*Math.cos(a);if(PIV.y+y2<surfH(PIV.z+z2)+0.01){hit=true;break;}}if(hit){OPEN_B=a-0.005;break;}OPEN_B=a;}})();
-let doorT=0,doorGoal=0;const OPEN_T=1.75; // top leaf up 100 deg
+let doorT=0,doorGoal=0,FIN15F=1,FIN15W=0;const OPEN_T=1.75; // top leaf up 100 deg
 function placeTread(){const a=OPEN_B;const c=Math.cos(a),sn=Math.sin(a);
   // outer face of the lowered leaf, in hinge coordinates rotated to world-level (dy up, dz outward)
   const face=[];for(let k=0;k<=N;k++){if(Yv[k]>=FLOOR&&Yv[k]<=SPLIT_Y&&R[k]<SPLIT_Z){const r=R[k]+NR[k]*RIB,y=Yv[k]+NY[k]*RIB;const dz=r-PIV.z,dy=y-PIV.y;face.push([dy*c-dz*sn,dy*sn+dz*c]);}}
@@ -636,7 +641,7 @@ function placeTread(){const a=OPEN_B;const c=Math.cos(a),sn=Math.sin(a);
     t.position.set(0,ty*c+tz*sn,-ty*sn+tz*c);t.rotation.x=-a;});
   TREAD_INFO={rise:-H/3,DL,DU,noseL,noseU:zU+DU};}
 let TREAD_INFO=null;
-function updateDoor(){doorT+=(doorGoal-doorT)*0.07;hingeB.rotation.x=OPEN_B*doorT;hingeT.rotation.x=-OPEN_T*doorT;tread.visible=doorT>0.85;doorRoot.updateMatrixWorld(true);if(typeof updateMech==='function')updateMech();
+function updateDoor(){const g=(doorGoal>doorT&&FIN15W>0.3)?doorT:doorGoal;doorT+=(g-doorT)*0.07; /* opening waits until the door-seam fin has been pushed flat */hingeB.rotation.x=OPEN_B*doorT;hingeT.rotation.x=-OPEN_T*doorT;tread.visible=doorT>0.85;doorRoot.updateMatrixWorld(true);if(typeof updateMech==='function')updateMech();
   [doorHeader,doorFrame,leafB,leafT,leafT2].forEach(c=>{c.userData.planes.forEach((q,i)=>q.copy(c.userData.local[i]).applyMatrix4(c.matrixWorld));});}
 placeTread();
 [gore].concat(copyObjs).forEach(c=>c.traverse(o=>{if(o.userData.pedHide)o.visible=false;}));
@@ -767,13 +772,10 @@ doorPieces.forEach(pc=>pc.traverse(o=>{if(o.isMesh&&o.material.transparent){o.us
 function setDoorFin(){fins[15].m.visible=doorFinOpt===1;doorPieces.forEach(pc=>pc.traverse(o=>{if(o.isMesh&&o.userData.op!==undefined){o.material.opacity=doorFinOpt===2?0.95:o.userData.op;o.material.color.copy(o.userData.col).multiplyScalar(doorFinOpt===2?0.72:1);}}));
 }
 setDoorFin();
-function updateFins(){FIN.beta+=(FIN.goal-FIN.beta)*0.08;const key=Math.round(FIN.beta*100)+'/'+Math.round(doorT*200);if(key===FIN.last)return;FIN.last=key;const B=FIN.beta*Math.PI/180;if(FIN.spokes)FIN.spokes.rotation.y=B;if(FIN.wheel)FIN.wheel.rotation.y=B;
+function updateFins(){FIN.beta+=(FIN.goal-FIN.beta)*0.08;const f15=(doorGoal||doorT>0.005)?0:1;FIN15F+=(f15-FIN15F)*0.15;if(Math.abs(f15-FIN15F)<0.002)FIN15F=f15;FIN15W=FIN15F*Math.abs(FIN.beta);const key=Math.round(FIN.beta*100)+'/'+Math.round(doorT*200)+'/'+Math.round(FIN15F*500);if(key===FIN.last)return;FIN.last=key;const B=FIN.beta*Math.PI/180;if(FIN.spokes)FIN.spokes.rotation.y=B;if(FIN.wheel)FIN.wheel.rotation.y=B;
   fins.forEach(({ph,geo,i0},j)=>{ // door-side fins: the open top leaf slides along them and pushes them back; their spring-loaded top links give way
-    const lim=(15-j)*22.5;const Bj=(j===14&&FIN.beta>lim)?(FIN.beta+(lim-FIN.beta)*doorT)*Math.PI/180:B;const P=geo.attributes.position;for(let i=i0;i<FIN.pts.length;i++){const q=FIN.pts[i];const pa=ph+Bj*q.s;const o=(i-i0)*2;
+    const lim=(15-j)*22.5;const Bj=j===15?B*FIN15F:(j===14&&FIN.beta>lim)?(FIN.beta+(lim-FIN.beta)*doorT)*Math.PI/180:B; /* door-seam fin (user 2026-11-05: no fin drooping into the pod): stays fixed at the seam outside the wall; the opening leaf pushes its twisted top back flat to the seam plane on its spring-loaded top link, and the leaf swings out inside the gore wedge clear of it */const P=geo.attributes.position;for(let i=i0;i<FIN.pts.length;i++){const q=FIN.pts[i];const pa=ph+Bj*q.s;const o=(i-i0)*2;
     P.setXYZ(o,q.r*Math.sin(ph),q.y,q.r*Math.cos(ph));P.setXYZ(o+1,q.or*Math.sin(pa),q.oy,q.or*Math.cos(pa));}
-    if(j===15&&doorT>0.001){ // door fin rides on the top leaf: rotate about the header hinge, fully below the header, fading to fixed at the ring (spring-loaded top link)
-      const A0=-OPEN_T*doorT;for(let v=0;v<P.count;v++){const x=P.getX(v),y=P.getY(v),z=P.getZ(v);const w=y<=CUT?1:Math.max(0,1-(y-CUT)/(FIN.RING.y-CUT));if(w<=0)continue;
-        const a=A0*w,c=Math.cos(a),sn=Math.sin(a);const ly=y-PIVT.y,lz=-z-PIVT.z;const ny=ly*c-lz*sn,nz=ly*sn+lz*c;P.setXYZ(v,x,ny+PIVT.y,-(nz+PIVT.z));}}
     P.needsUpdate=true;geo.computeVertexNormals();geo.computeBoundingSphere();});}
 // ---------- scale figures: 171 cm man, 158 cm woman, architectural silhouettes that turn to face the camera ----------
 groups.people=new THREE.Group();scene.add(groups.people);const figures=[];
@@ -844,10 +846,27 @@ const goreParts=['strips','core','pattern','led','gill','fan'];
 function resize(){const w=window.innerWidth,h=window.innerHeight;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
 window.addEventListener('resize',resize);resize();resetView();
 const tmp=new THREE.Vector3();
-function tick(){requestAnimationFrame(tick);controls.update();updateDoor();updateFins();faceFigures();renderer.render(scene,camera);
+let tick=function(){requestAnimationFrame(()=>tick());controls.update();updateDoor();updateFins();faceFigures();renderer.render(scene,camera);
   const w=window.innerWidth,h=window.innerHeight;
   for(const o of labels){let vis=showLabels||o.group===marks||o.group===groups.joints,g=o.group;while(g){if(!g.visible){vis=false;break;}g=g.parent;}tmp.copy(o.pos).project(camera);if(!vis||tmp.z>1){o.el.style.display='none';continue;}o.el.style.display='block';o.el.style.left=((tmp.x+1)/2*w)+'px';o.el.style.top=((1-tmp.y)/2*h)+'px';}
 }
+// ---------- opening tour (public page): spin, fins close over the roof and open, down to the door (opens, holds, closes), out to the whole pod and the two figures ----------
+let TOUR=null;
+window.__startTour=function(){const fov=camera.fov*Math.PI/180;let d0=size0/(2*Math.tan(fov/2))*0.85;if(camera.aspect<1)d0/=Math.max(camera.aspect,0.62);
+  const C=center.clone().add(new THREE.Vector3(0,0.15,0)),DOOR=new THREE.Vector3(0,0.35,-1.25),A0=Math.atan2(0.55,0.78),AD=Math.PI+2*Math.PI;
+  const K=[ // t (s), azimuth, elevation, distance, target
+    [0,A0,0.30,d0,C],[6,A0+2*Math.PI,0.30,d0,C],[8.5,A0+2*Math.PI+0.5,1.10,d0*0.95,C],[13.5,A0+2*Math.PI+0.9,1.05,d0*0.95,C],
+    [16.5,AD+0.30,0.38,2.8,DOOR],[22,AD+0.22,0.38,2.8,DOOR],[26,AD+0.35,0.25,d0*1.1,C]]; // door view from above head height so the two figures do not block it
+  const EV=[[7,()=>{FIN.goal=45;}],[11,()=>{FIN.goal=0;}],[17,()=>{if(!doorGoal)document.getElementById('bDoor').click();}],[20,()=>{if(doorGoal)document.getElementById('bDoor').click();}]];
+  TOUR={t:0,last:performance.now(),K,EV,i:0};controls.enabled=false;FIN.goal=0;doorGoal=0;
+  const skip=()=>endTour(true);renderer.domElement.addEventListener('pointerdown',skip,{once:true});TOUR.skip=skip;};
+function endTour(skipped){if(!TOUR)return;const K=TOUR.K[TOUR.K.length-1];renderer.domElement.removeEventListener('pointerdown',TOUR.skip);
+  if(skipped){FIN.goal=0;doorGoal=0;}setCam(K[1],K[2],K[3],K[4]);TOUR=null;controls.enabled=true;document.documentElement.classList.remove('touring');}
+function setCam(az,el,d,tg){controls.target.copy(tg);camera.position.set(tg.x+d*Math.cos(el)*Math.sin(az),tg.y+d*Math.sin(el),tg.z+d*Math.cos(el)*Math.cos(az));camera.lookAt(tg);}
+function tourStep(){const now=performance.now();TOUR.t+=Math.min((now-TOUR.last)/1000,window.__tourCap||0.05);TOUR.last=now;const t=TOUR.t; /* clock capped per frame so a slow first frame (shader compile) does not skip the tour */while(TOUR.i<TOUR.EV.length&&t>=TOUR.EV[TOUR.i][0]){TOUR.EV[TOUR.i][1]();TOUR.i++;}
+  const K=TOUR.K;if(t>=K[K.length-1][0]){endTour(false);return;}let j=0;while(t>K[j+1][0])j++;const a=K[j],b=K[j+1];const u=(t-a[0])/(b[0]-a[0]);const e=j===0?u:u*u*(3-2*u); // constant spin first, eased after
+  const L=(x,y)=>x+(y-x)*e;setCam(L(a[1],b[1]),L(a[2],b[2]),L(a[3],b[3]),a[4].clone().lerp(b[4],e));}
+const _tick=tick;tick=function(){if(TOUR)tourStep();_tick();};
 tick();
 })();
 </script>
@@ -857,10 +876,9 @@ window.addEventListener('load',()=>{setTimeout(()=>{
  ['tLabels','tJoints','tRebar','tDims','tTable'].forEach(off);
  const c=document.getElementById('bCopies');for(let i=0;i<8&&c&&!/15/.test(c.textContent);i++)c.click();
  if(/[?&]build/.test(location.search)||location.hash==='#build')return; // build mode (viewer.html?build or #build): all layers and buttons
- document.querySelectorAll('#bar button').forEach(b=>{if(b.id!=='bDoor'&&b.id!=='bFins')b.style.display='none';});
- const p=document.getElementById('panel');if(p)p.style.display='none';
  const fb=document.getElementById('bFins');if(fb){const set=()=>{fb.textContent='Twist fins: '+(fb.textContent.match(/\d+°/)||['0°'])[0];};set();fb.addEventListener('click',()=>setTimeout(set,0));}
  document.querySelectorAll('.lbl').forEach(e=>e.style.visibility='hidden');
+ document.documentElement.classList.remove('prep');if(window.__startTour)window.__startTour();
 },300);});
 </script>
 </body>
