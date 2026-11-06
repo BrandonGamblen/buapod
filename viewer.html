@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Lotus 1.0 · 3D model</title>
+<title>Bua 1.0 · 3D model</title>
 <script>if(!(/[?&]build/.test(location.search)||location.hash==='#build'))document.documentElement.classList.add('pub','prep','touring');</script>
 <style>
   html.pub #panel,html.pub .lbl{display:none!important}
@@ -863,18 +863,21 @@ let tick=function(){requestAnimationFrame(()=>tick());controls.update();updateDo
 let TOUR=null;
 window.__startTour=function(){const fov=camera.fov*Math.PI/180;let d0=size0/(2*Math.tan(fov/2))*0.85;if(camera.aspect<1)d0/=Math.max(camera.aspect,0.62);
   const BB=new THREE.Box3();[gore,groups.top,groups.people,groups.footing,groups.ped].forEach(g=>{if(g)BB.union(new THREE.Box3().setFromObject(g));});const CF=BB.getCenter(new THREE.Vector3()),RS=BB.getSize(new THREE.Vector3()).length()/2;
-  const vf=camera.fov*Math.PI/180,hf=2*Math.atan(Math.tan(vf/2)*camera.aspect),DF=RS/Math.sin(Math.min(vf,hf)/2)*0.92,AF=4*Math.PI-Math.PI/2-0.25;
+  const vf=camera.fov*Math.PI/180,hf=2*Math.atan(Math.tan(vf/2)*camera.aspect),DF=RS/Math.sin(Math.min(vf,hf)/2)*0.92,AF=3*Math.PI+0.55; // start/end: angled at the door (door gore faces -z), far enough for the whole pod and both figures
   // user 2026-11-05: start at the final view; swoop up and to the right, orbit over the roof while the fins close and open, come down round the other side back to the start. 10 s.
   const PC=center.clone().add(new THREE.Vector3(0,0.15,0)),T=10;
-  const fn=t=>{const e0=Math.min(1,t/T),e=e0*e0*(3-2*e0),b=Math.sin(Math.PI*e);return [AF+2*Math.PI*e,0.07+1.13*b,DF*(1-0.12*b),CF.clone().lerp(PC,b)];};
-  const DB=()=>document.getElementById('bDoor');const EV=[[2.0,()=>{FIN.goal=45;}],[4.6,()=>{FIN.goal=0;}],[10.2,()=>{if(!doorGoal)DB().click();}],[12.0,()=>{if(doorGoal)DB().click();}]]; // fins close and reopen while the camera is still overhead; back at the start view the door opens, holds, closes (user 2026-11-05)
-  TOUR={t:0,last:performance.now(),fn,T,END:13.4,EV,i:0};controls.enabled=false;FIN.goal=0;if(doorGoal)document.getElementById('bDoor').click();document.documentElement.classList.add('touring');setCam(...fn(0));
+  const DZ=new THREE.Vector3(0,0.35,-1.3),dZ=2.3,sm=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x);};
+  const fn=t=>{if(t<=T){const e=sm(t/T),b=Math.sin(Math.PI*e);return [AF+2*Math.PI*e,0.10+1.10*b,DF*(1-0.12*b),CF.clone().lerp(PC,b)];}
+    const z=t<13.2?sm((t-T)/1.5):1-sm((t-13.2)/1.8); // zoom in so the door frame fills the view, hold while the door opens, zoom out as it closes (user 2026-11-05)
+    return [AF+2*Math.PI,0.10+0.22*z,DF+(dZ-DF)*z,CF.clone().lerp(DZ,z)];};
+  const DB=()=>document.getElementById('bDoor');const EV=[[2.0,()=>{FIN.goal=45;}],[4.6,()=>{FIN.goal=0;}],[11.3,()=>{if(!doorGoal)DB().click();}],[13.2,()=>{if(doorGoal)DB().click();}]]; // fins close and reopen while the camera is still overhead; back at the start view the door opens, holds, closes (user 2026-11-05)
+  TOUR={t:0,last:performance.now(),fn,T,END:15.2,EV,i:0};controls.enabled=false;FIN.goal=0;if(doorGoal)document.getElementById('bDoor').click();document.documentElement.classList.add('touring');setCam(...fn(0));
   const skip=()=>endTour(true);renderer.domElement.addEventListener('pointerdown',skip,{once:true});TOUR.skip=skip;};
-function endTour(skipped){if(!TOUR)return;const K=TOUR.fn(TOUR.T);renderer.domElement.removeEventListener('pointerdown',TOUR.skip);
+function endTour(skipped){if(!TOUR)return;const K=TOUR.fn(TOUR.END);renderer.domElement.removeEventListener('pointerdown',TOUR.skip);
   if(skipped){FIN.goal=0;if(doorGoal)document.getElementById('bDoor').click();}setCam(...K);TOUR=null;controls.enabled=true;document.documentElement.classList.remove('touring');}
 function setCam(az,el,d,tg){controls.target.copy(tg);camera.position.set(tg.x+d*Math.cos(el)*Math.sin(az),tg.y+d*Math.sin(el),tg.z+d*Math.cos(el)*Math.cos(az));camera.lookAt(tg);}
 function tourStep(){const now=performance.now();TOUR.t+=Math.min((now-TOUR.last)/1000,window.__tourCap||0.05);TOUR.last=now;const t=TOUR.t; /* clock capped per frame so a slow first frame (shader compile) does not skip the tour */while(TOUR.i<TOUR.EV.length&&t>=TOUR.EV[TOUR.i][0]){TOUR.EV[TOUR.i][1]();TOUR.i++;}
-  if(t>=TOUR.END){endTour(false);return;}setCam(...TOUR.fn(Math.min(t,TOUR.T)));}
+  if(t>=TOUR.END){endTour(false);return;}setCam(...TOUR.fn(t));}
 const _tick=tick;tick=function(){if(TOUR)tourStep();_tick();};
 tick();
 })();
