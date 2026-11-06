@@ -880,7 +880,8 @@ window.__startTour=function(){const fov=camera.fov*Math.PI/180;let d0=size0/(2*M
   const DC=V(0,0.30,-1.35),PCL=V(DC.x+4.3*Math.sin(0.55),GRADE+1.35,DC.z-4.3*Math.cos(0.55)),TCL=V(0.40,0.0,-1.9),M1=V(0.95,-0.30,-2.15); // M1: between the figures and the door, so the camera never passes through a figure // close angle to the left of the door (user's view)
   const PRr=orb(AR,0.10,DF,CF),Q=V(-1.9,0.15,-3.0),sA=A2*0.9;
   // inside: one smooth elliptical loop round the cabin (user 2026-11-05), eyes on the seats across the cabin, lifting to the ceiling in the last quarter, then back out the doorway
-  const EC=V(0,0.75,0.05),ERX=0.45,ERZ=0.38,T0=15.0,TL=9.0,NE=12,AI=V(0.75,GRADE+0.66,-2.05),AO=V(-0.75,GRADE+0.80,-2.05),KS=[[7.5,PS,CF],[9.8,PCL,TCL],[11.7,AI,TD],[13.2,W,V(0,0.25,0.9)]]; // AI/AO: thigh height beside the doorway; one sweeping curve in and out, no corner
+  const EC=V(0,0.75,0.05),ERX=0.45,ERZ=0.38,T0=15.0,TL=9.0,NE=12,AI=V(0.75,GRADE+0.66,-2.05),AO=V(-0.75,GRADE+0.80,-2.05),KS=[];
+  KS.push([9.8,PCL,TCL],[11.7,AI,TD],[13.2,W,V(0,0.25,0.9)]); // AI/AO: thigh height beside the doorway; one sweeping curve in and out, no corner
   for(let k=0;k<=NE;k++){const f=k/NE,th=Math.PI+2*Math.PI*f,lift=Math.pow(Math.sin(Math.PI*Math.max(0,Math.min(1,(f-0.3)/0.7))),2);const pos=V(EC.x+ERX*Math.sin(th),EC.y+0.10*Math.sin(Math.PI*f),EC.z+ERZ*Math.cos(th));
     const across=V(-1.1*Math.sin(th),0.05,EC.z-1.1*Math.cos(th));const d0=across.clone().sub(pos).normalize(),d1=CEIL.clone().sub(pos).normalize(),q=new THREE.Quaternion().setFromUnitVectors(d0,d1),qq=new THREE.Quaternion().slerp(q,lift*0.9);KS.push([T0+TL*f,pos,pos.clone().add(d0.applyQuaternion(qq).multiplyScalar(1.5))]);} // aim turns on a sphere, never swings past the lens
   const AM=(AR+AE)/2;KS.push([T0+TL+1.8,W,MID],[T0+TL+2.6,V(-0.25,0.22,-1.95),V(0,0.35,-0.6)],[T0+TL+4.0,Q,CF],[T0+TL+7.8,orb(AE,0.10,DF,CF),CF]);
@@ -888,8 +889,11 @@ window.__startTour=function(){const fov=camera.fov*Math.PI/180;let d0=size0/(2*M
   const herm=(t,f)=>{let i=0;while(i<KS.length-2&&t>=KS[i+1][0])i++;const k0=KS[i],k1=KS[i+1],h=k1[0]-k0[0],s=Math.max(0,Math.min(1,(t-k0[0])/h));
     const tan=j=>(j<=0||j>=KS.length-1)?V(0,0,0):KS[j+1][f].clone().sub(KS[j-1][f]).multiplyScalar(1/(KS[j+1][0]-KS[j-1][0]));
     const s2=s*s,s3=s2*s;return k0[f].clone().multiplyScalar(2*s3-3*s2+1).add(tan(i).multiplyScalar((s3-2*s2+s)*h)).add(k1[f].clone().multiplyScalar(-2*s3+3*s2)).add(tan(i+1).multiplyScalar((s3-s2)*h));};
-  const fn=t=>{
-    if(t<7.5){const e=sm(t/7.5),b=Math.sin(Math.PI*e);const tg=CF.clone().lerp(PC,b);return [orb(AF+(AS-AF)*e,0.10+1.10*b,DF*(1-0.12*b),tg),tg];}
+  // orbit and descent are one motion: over the roof, then spiralling in and down to the close angle left of the door, easing to rest there as the door opens
+  const rel=PCL.clone().sub(TCL),dP=rel.length(),elP=Math.asin(rel.y/dP);let azP=Math.atan2(rel.x,rel.z);azP+=2*Math.PI*Math.round((AS-azP)/(2*Math.PI));
+  const orbit1=t=>{const u=t/9.8,e=sm(u),w=sm((u-0.55)/0.45),b=Math.pow(Math.sin(Math.PI*Math.min(1,e/0.75)),2);const tg=CF.clone().lerp(PC,b).lerp(TCL,w);
+    return [orb(AF+(azP-AF)*e,0.10+(elP-0.10)*w+1.10*b,DF*(1-0.12*b)+(dP-DF)*w,tg),tg];};
+  const fn=t=>{if(t<9.8)return orbit1(t);
     return [herm(Math.min(t,TK),1),herm(Math.min(t,TK),2)];};
   const T=7.5;TOUR_FOV=t=>40+32*(sm((t-12.2)/1.3)-sm((t-24.6)/1.3)); // wide lens inside the pod
   const DB=()=>document.getElementById('bDoor');const EV=[[1.6,()=>{FIN.goal=45;}],[3.8,()=>{FIN.goal=0;}],[8.0,()=>{if(!doorGoal)DB().click();}],[28.4,()=>{if(doorGoal)DB().click();}] /* door closes once the camera is up and away over the figures */]; // fins close and reopen while the camera is still overhead; back at the start view the door opens, holds, closes (user 2026-11-05)
