@@ -657,8 +657,12 @@ const MECH={};
   const AXL=2*half+0.06;const axle=new THREE.Mesh(new THREE.CylinderGeometry(0.0125,0.0125,AXL,16),steel);axle.rotation.z=Math.PI/2;axle.position.copy(PIVT);doorRoot.add(axle);
   // concealed hinge (user 2026-11-05): no metal in sight. The axle runs inside a hardwood head jamb (60 mm tall, through the wall thickness) set in a recess along the
   // underside of the concrete header, its ends in the side jambs. The door's top rail is a 56 mm round hardwood knuckle bored for the axle (bronze bushings inside); half of it sits in a matching cove in the head jamb.
-  {const W=2*half+0.07,Ri=pRcY(CUT)-0.004,Ro=pRcY(CUT)+PT(CUT)+0.004,H=0.06,n=24,pos=[],idx=[];
-   for(let i=0;i<=n;i++){const x=-W/2+W*i/n;const zi=Math.sqrt(Ri*Ri-x*x),zo=Math.sqrt(Ro*Ro-x*x);[[zi,CUT],[zo,CUT],[zo,CUT+H],[zi,CUT+H]].forEach(([z,y])=>pos.push(x,y,z));
+  {const W=2*half+0.07,Ri=pRcY(CUT)-0.004,H=0.06,n=24,pos=[],idx=[];
+   // outer face follows the sloping wall face 4 mm proud (the fin root line), so the head jamb ends at the fin instead of the fin cutting through it (user 2026-11-05)
+   const oR=yq=>{let best=null;for(let k=0;k<N;k++){const t0=PT(Math.max(Yv[k],0))+0.004,t1=PT(Math.max(Yv[k+1],0))+0.004;const y0=Yv[k]+t0*NY[k],y1=Yv[k+1]+t1*NY[k+1];
+      if((y0-yq)*(y1-yq)<=0&&y0!==y1){const f=(yq-y0)/(y1-y0);const r=(R[k]+t0*NR[k])*(1-f)+(R[k+1]+t1*NR[k+1])*f;if(best===null||r>best)best=r;}}return best-0.0005;};
+   const RoB=oR(CUT),RoT=oR(CUT+H);
+   for(let i=0;i<=n;i++){const x=-W/2+W*i/n;const zi=Math.sqrt(Ri*Ri-x*x),zoB=Math.sqrt(RoB*RoB-x*x),zoT=Math.sqrt(RoT*RoT-x*x);[[zi,CUT],[zoB,CUT],[zoT,CUT+H],[zi,CUT+H]].forEach(([z,y])=>pos.push(x,y,z));
      if(i>0){const a=(i-1)*4,b=i*4;for(let j=0;j<4;j++){const j2=(j+1)%4;idx.push(a+j,a+j2,b+j2,a+j,b+j2,b+j);}}}
    idx.push(0,1,2,0,2,3);const e=n*4;idx.push(e,e+2,e+1,e,e+3,e+2);
    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();
@@ -728,7 +732,7 @@ const stS=new THREE.MeshStandardMaterial({color:0x7d7c76,metalness:0.7,roughness
 // turning the ring drags each fin's wide upper edge sideways over the gore; the blade bends/twists between fixed root and ring
 groups.fins=new THREE.Group();scene.add(groups.fins);
 const FIN={beta:0,goal:0,last:-1,RING:new THREE.Vector2(0.20,Yv[N]+0.45),WTOP:0.60};const fins=[];
-(function(){const pts=[];for(let k=0;k<=N;k+=2){if(Yv[k]<0.16)continue;if(!(R[k]>1.20||Yv[k]>0.5))continue;const fo=Yv[k]<PJ9?Math.max(0.065,PT(Yv[k])+0.005):0.065;const r=R[k]+fo*NR[k],y=Yv[k]+fo*NY[k];if(r<0.30)break;pts.push({r,y,nr:NR[k],ny:NY[k]});}
+(function(){const pts=[];for(let k=0;k<=N;k++){if(Yv[k]<0.16)continue;if(!(R[k]>1.20||Yv[k]>0.5))continue;const fo=Yv[k]<PJ9?Math.max(0.065,PT(Yv[k])+0.004):0.065; /* root on every wall sample (no chord cutting into the wood door frame); root line = the frame's outer face (4 mm proud), so the frame ends at the fin */const r=R[k]+fo*NR[k],y=Yv[k]+fo*NY[k];if(r<0.30)break;pts.push({r,y,nr:NR[k],ny:NY[k]});}
   const n=pts.length;pts.forEach((q,i)=>{const sp=i/(n-1);const w=0.025+(FIN.WTOP-0.025)*Math.pow(sp,2.5);const b=Math.pow(sp,8);
     q.s=sp;q.or=(1-b)*(q.r+w*q.nr)+b*FIN.RING.x;q.oy=(1-b)*(q.y+w*q.ny)+b*FIN.RING.y;});
   FIN.pts=pts;const mat=new THREE.MeshStandardMaterial({color:0xd8c7a3,roughness:1,side:THREE.DoubleSide});
