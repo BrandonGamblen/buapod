@@ -7,7 +7,8 @@
 <script>if(!(/[?&]build/.test(location.search)||location.hash==='#build'))document.documentElement.classList.add('pub','prep','touring');</script>
 <style>
   html.pub #panel,html.pub .lbl{display:none!important}
-  html.pub #bar button:not(#bDoor):not(#bFins){display:none!important}
+  html.pub #bar button:not(#bDoor):not(#bFins):not(#bTour){display:none!important}
+  html:not(.pub) #bTour{display:none}
   html.touring #bar{display:none!important}
   html.prep canvas{visibility:hidden}
   html,body{margin:0;height:100%;background:#f4f1ea;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#2c2c2a;overflow:hidden}
@@ -54,6 +55,7 @@
   <button id="c3" class="on">C4 foot R</button>
   <button id="tSleep">Sleep mode</button>
   <button id="tTable" class="on">Table</button>
+  <button id="bTour">Tour</button>
   <button id="bDoor">Door: closed</button>
   <button id="bSun">Sun: off</button>
   <button id="tPeople" class="on">People</button>
@@ -438,7 +440,7 @@ function setCopies(){const n=copySteps[copyStep];copyObjs.forEach((c,i)=>c.visib
 // ---------- door gore at 180 deg ----------
 // fixed open frame below the floor, petal leaf from floor level to the header cut, fixed header above
 renderer.localClippingEnabled=true;
-const FLOOR=FLOOR_Y, CUT=0.72; /* header (top of door frame) at 1.83 m above ground so a 6 ft person walks under it (user 2026-11-04); was 1.30 */
+const FLOOR=FLOOR_Y, CUT=0.845; /* header (top of door frame, top-door hinge line) 1.959 m above ground (user 2026-11-05, option 3: hinge on the outer face, header raised 125 mm so a 6 ft person walks under the open door); was 0.72 */
 const doorRoot=new THREE.Group();doorRoot.rotation.y=Math.PI;scene.add(doorRoot);
 function clippedClone(planes){const c=gore.clone(true);const pl=planes.map(q=>q.length===2?new THREE.Plane(new THREE.Vector3(0,q[0],0),q[1]):new THREE.Plane(new THREE.Vector3(q[0],q[1],q[2]),q[3]));
   c.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.clippingPlanes=pl;pickables.push(o);}});c.userData.local=pl.map(q=>q.clone());c.userData.planes=pl;return c;}
@@ -449,7 +451,7 @@ const PIV=new THREE.Vector3(0,FLOOR,0.43+0.004); // bottom hinge on the cross pi
 const hingeB=new THREE.Group();hingeB.position.copy(PIV);doorRoot.add(hingeB);
 const leafB=clippedClone([[1,-FLOOR],[-1,SPLIT_Y],[0,0,-1,SPLIT_Z]]); // shin, knee, flat seat
 leafB.position.copy(PIV).multiplyScalar(-1);hingeB.add(leafB);
-const kH=domeKAtY(CUT);const PIVT=at(kH,RIB*0.5,0); // concealed top hinge: bolt through the middle of the rib depth at the header line
+const kH=domeKAtY(CUT);const PIVT=(()=>{let best=null;for(let k=0;k<N;k++){const t0=PT(Math.max(Yv[k],0)),t1=PT(Math.max(Yv[k+1],0));const y0=Yv[k]+t0*NY[k],y1=Yv[k+1]+t1*NY[k+1];if((y0-CUT)*(y1-CUT)<=0&&y0!==y1){const f=(CUT-y0)/(y1-y0);const r=(R[k]+t0*NR[k])*(1-f)+(R[k+1]+t1*NR[k+1])*f;if(best===null||r>best)best=r;}}return new THREE.Vector3(0,CUT,best);})(); // top hinge on the OUTER face of the wall at the header line (user 2026-11-05): the whole door is inside the hinge line, so it swings out without its top corners entering the concrete or the fins
 const hingeT=new THREE.Group();hingeT.position.copy(PIVT);doorRoot.add(hingeT);
 const leafT=clippedClone([[1,-SPLIT_Y],[-1,CUT]]);leafT.position.copy(PIVT).multiplyScalar(-1);hingeT.add(leafT); // back wall + lower dome
 const leafT2=clippedClone([[1,-FLOOR],[-1,SPLIT_Y],[0,0,1,-SPLIT_Z]]);leafT2.position.copy(PIVT).multiplyScalar(-1);hingeT.add(leafT2); // back corner cove
@@ -658,8 +660,6 @@ const MECH={};
   // a car-style pull handle on the outside of each door releases that latch so the door swings free (top up on its gas dampers, bottom down onto its gas dampers). Sizes my proposal.
   const blk=new THREE.MeshStandardMaterial({color:0x1d1d1f,metalness:0.4,roughness:0.5});const chrome=new THREE.MeshStandardMaterial({color:0xcfd2d4,metalness:0.9,roughness:0.2});
   const line=(pts,m,parent)=>{const l=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),m);parent.add(l);return l;};const cabM=new THREE.LineDashedMaterial({color:0x8b1e1e,dashSize:0.02,gapSize:0.012});
-  // axle: fixed 25 mm steel axle across the top of the door frame, hidden inside the wood head jamb below
-  const AXL=2*half+0.06;const axle=new THREE.Mesh(new THREE.CylinderGeometry(0.0125,0.0125,AXL,16),steel);axle.rotation.z=Math.PI/2;axle.position.copy(PIVT);doorRoot.add(axle);
   // concealed hinge (user 2026-11-05): no metal in sight. The axle runs inside a hardwood head jamb (60 mm tall, through the wall thickness) set in a recess along the
   // underside of the concrete header, its ends in the side jambs. The door's top rail is a 56 mm round hardwood knuckle bored for the axle (bronze bushings inside); half of it sits in a matching cove in the head jamb.
   {const W=2*half+0.07,Ri=pRcY(CUT)-0.004,H=0.06,n=24,pos=[],idx=[];
@@ -672,10 +672,19 @@ const MECH={};
    idx.push(0,1,2,0,2,3);const e=n*4;idx.push(e,e+2,e+1,e,e+3,e+2);
    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();
    const head=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:0x6b4423,roughness:0.8,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));doorRoot.add(head);
-   const kn=new THREE.Mesh(new THREE.CylinderGeometry(0.028,0.028,2*half-0.01,24),new THREE.MeshStandardMaterial({color:0x9b6a3a,roughness:0.8}));kn.rotation.z=Math.PI/2;hingeT.add(kn);}
+   // hinge: stainless continuous (piano) hinge on the outer face at the header line, 9 mm knuckle, ends inside the gore wedge (clear of the fins)
+   const uP=PIVT.z,LK=2*((uP-0.005)*Math.sin(TH)-0.002);const pk=new THREE.Mesh(new THREE.CylinderGeometry(0.0045,0.0045,LK,16),new THREE.MeshStandardMaterial({color:0x8d8a83,metalness:0.7,roughness:0.35}));pk.rotation.z=Math.PI/2;pk.position.copy(PIVT);doorRoot.add(pk);
+   // hardwood drip hood over the hinge, between the two seam fins: lower face at 40 deg up from the hinge (the door's top edge never rises above 37 deg from the hinge as it swings), top face back to the wall 60 mm up
+   {const fa=Math.atan2(H,(oR(CUT+H)+0.0005-0.004)-uP);const sec=[];for(let a=fa;a>=40*Math.PI/180-1e-6;a-=(fa-40*Math.PI/180)/8)sec.push([uP+0.007*Math.cos(a),CUT+0.007*Math.sin(a)]);
+    const a40=40*Math.PI/180;sec.push([uP+0.032*Math.cos(a40),CUT+0.032*Math.sin(a40)]);sec.push([oR(CUT+H)+0.0005,CUT+H]);
+    const m=sec.length,nA=16,ph0=-TH+0.0006,ph1=TH-0.0006,hp=[],hi=[];for(let i=0;i<=nA;i++){const ph=ph0+(ph1-ph0)*i/nA;sec.forEach(([u,y])=>hp.push(u*Math.sin(ph),y,u*Math.cos(ph)));
+      if(i>0)for(let j=0;j<m;j++){const j2=(j+1)%m,a=(i-1)*m,b=i*m;hi.push(a+j,a+j2,b+j2,a+j,b+j2,b+j);}}
+    for(let j=1;j<m-1;j++){hi.push(0,j,j+1);const e=nA*m;hi.push(e,e+j+1,e+j);}
+    const hg=new THREE.BufferGeometry();hg.setAttribute('position',new THREE.Float32BufferAttribute(hp,3));hg.setIndex(hi);hg.computeVertexNormals();
+    doorRoot.add(new THREE.Mesh(hg,new THREE.MeshStandardMaterial({color:0x6b4423,roughness:0.8,side:THREE.DoubleSide})));}}
   // top door dampers: gas spring with end damping, one each side; fixed end on a drop bracket from the header (y 0.625), moving end on a bracket at the door's inner bottom edge (y 0.30).
   // 325 mm closed, 541 mm open, stroke 216 mm (my calculation); about 110 N each lifts the 9 kg door open once the latch lets go and holds it at 100 deg (my estimate).
-  const XS=0.225,AY=0.625,BY=SPLIT_Y,IN=0.09;const zIn=y=>pRcY(y)-IN;MECH.struts=[];
+  const XS=0.225,AY=CUT-0.095,BY=SPLIT_Y,IN=0.09;const zIn=y=>pRcY(y)-IN;MECH.struts=[];
   const mkP=(rBody,rRod,lenBody,lenRod,mBody)=>{const g=new THREE.Group();const body=new THREE.Mesh(new THREE.CylinderGeometry(rBody,rBody,1,18),mBody);body.userData.part='body';body.userData.len=lenBody;g.add(body);
     const rod=new THREE.Mesh(new THREE.CylinderGeometry(rRod,rRod,1,14),chrome);rod.userData.part='rod';rod.userData.len=lenRod;g.add(rod);doorRoot.add(g);return g;};
   [-1,1].forEach(sd=>{const A=new THREE.Vector3(sd*XS,AY,zIn(AY));const t=new THREE.Object3D();t.position.set(sd*XS,BY,zIn(BY)).sub(PIVT);hingeT.add(t);
@@ -686,7 +695,7 @@ const MECH={};
   // Frame: hardwood jamb liner 35 mm thick on both sides of the opening, floor to header, set into a 35 mm recess in the concrete jamb faces; it stands 4 mm proud of both wall faces.
   // strip along a door-gore edge, between angles thA and thB, through the wall thickness; PR pushes the faces out (+) or in (-) of the wall faces
   const edgeStrip=(sd,thA,thBw,PR,pred,parent,origin,color,off)=>{const pos=[],idx=[];let n=0;
-    for(let k=0;k<=kH;k++){const y=Yv[k];if(!pred(k))continue;const t=PT(Math.max(y,0));const P=[[R[k]-NR[k]*PR,y-NY[k]*PR],[R[k]+NR[k]*(t+PR),y+NY[k]*(t+PR)]];
+    for(let k=0;k<=kH;k++){const y=Yv[k];if(!pred(k))continue;const t=PT(Math.max(y,0));const P=[[R[k]-NR[k]*PR,Math.min(CUT,y-NY[k]*PR)],[R[k]+NR[k]*(t+PR),Math.min(CUT,y+NY[k]*(t+PR))]]; /* top ends cut level at the header, not along the wall normal (the outer corner poked 30 mm above it) */
       for(const [r,yy] of P)for(const th of [thA,thA+thBw/Math.max(r,0.3)])pos.push(sd*r*Math.sin(th)-origin.x,yy-origin.y,r*Math.cos(th)-origin.z);
       if(n>0){const a=(n-1)*4,b=n*4;[[0,1],[1,3],[3,2],[2,0]].forEach(([i,j])=>{idx.push(a+i,a+j,b+j,a+i,b+j,b+i);});}n++;}
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();
@@ -853,19 +862,19 @@ let tick=function(){requestAnimationFrame(()=>tick());controls.update();updateDo
 // ---------- opening tour (public page): spin, fins close over the roof and open, down to the door (opens, holds, closes), out to the whole pod and the two figures ----------
 let TOUR=null;
 window.__startTour=function(){const fov=camera.fov*Math.PI/180;let d0=size0/(2*Math.tan(fov/2))*0.85;if(camera.aspect<1)d0/=Math.max(camera.aspect,0.62);
-  const C=center.clone().add(new THREE.Vector3(0,0.15,0)),DOOR=new THREE.Vector3(0,0.35,-1.25),A0=Math.atan2(0.55,0.78),AD=Math.PI+2*Math.PI;
-  const K=[ // t (s), azimuth, elevation, distance, target
-    [0,A0,0.30,d0,C],[2.4,A0+2*Math.PI,0.30,d0,C],[3.2,A0+2*Math.PI+0.5,1.10,d0*0.95,C],[4.7,A0+2*Math.PI+0.9,1.05,d0*0.95,C],
-    [5.9,AD+0.30,0.38,2.8,DOOR],[8.5,AD+0.22,0.38,2.8,DOOR],[10,AD+0.35,0.25,d0*1.1,C]]; // 10 s (user 2026-11-05) // door view from above head height so the two figures do not block it
-  const EV=[[2.7,()=>{FIN.goal=45;}],[3.9,()=>{FIN.goal=0;}],[5.9,()=>{if(!doorGoal)document.getElementById('bDoor').click();}],[7.5,()=>{if(doorGoal)document.getElementById('bDoor').click();}]];
-  TOUR={t:0,last:performance.now(),K,EV,i:0};controls.enabled=false;FIN.goal=0;doorGoal=0;
+  const BB=new THREE.Box3();[gore,groups.top,groups.people,groups.footing,groups.ped].forEach(g=>{if(g)BB.union(new THREE.Box3().setFromObject(g));});const CF=BB.getCenter(new THREE.Vector3()),RS=BB.getSize(new THREE.Vector3()).length()/2;
+  const vf=camera.fov*Math.PI/180,hf=2*Math.atan(Math.tan(vf/2)*camera.aspect),DF=RS/Math.sin(Math.min(vf,hf)/2)*0.92,AF=4*Math.PI-Math.PI/2-0.25;
+  // user 2026-11-05: start at the final view; swoop up and to the right, orbit over the roof while the fins close and open, come down round the other side back to the start. 10 s.
+  const PC=center.clone().add(new THREE.Vector3(0,0.15,0)),T=10;
+  const fn=t=>{const e0=Math.min(1,t/T),e=e0*e0*(3-2*e0),b=Math.sin(Math.PI*e);return [AF+2*Math.PI*e,0.07+1.13*b,DF*(1-0.12*b),CF.clone().lerp(PC,b)];};
+  const EV=[[2.2,()=>{FIN.goal=45;}],[6.2,()=>{FIN.goal=0;}]];
+  TOUR={t:0,last:performance.now(),fn,T,EV,i:0};controls.enabled=false;FIN.goal=0;if(doorGoal)document.getElementById('bDoor').click();document.documentElement.classList.add('touring');setCam(...fn(0));
   const skip=()=>endTour(true);renderer.domElement.addEventListener('pointerdown',skip,{once:true});TOUR.skip=skip;};
-function endTour(skipped){if(!TOUR)return;const K=TOUR.K[TOUR.K.length-1];renderer.domElement.removeEventListener('pointerdown',TOUR.skip);
-  if(skipped){FIN.goal=0;doorGoal=0;}setCam(K[1],K[2],K[3],K[4]);TOUR=null;controls.enabled=true;document.documentElement.classList.remove('touring');}
+function endTour(skipped){if(!TOUR)return;const K=TOUR.fn(TOUR.T);renderer.domElement.removeEventListener('pointerdown',TOUR.skip);
+  if(skipped){FIN.goal=0;doorGoal=0;}setCam(...K);TOUR=null;controls.enabled=true;document.documentElement.classList.remove('touring');}
 function setCam(az,el,d,tg){controls.target.copy(tg);camera.position.set(tg.x+d*Math.cos(el)*Math.sin(az),tg.y+d*Math.sin(el),tg.z+d*Math.cos(el)*Math.cos(az));camera.lookAt(tg);}
 function tourStep(){const now=performance.now();TOUR.t+=Math.min((now-TOUR.last)/1000,window.__tourCap||0.05);TOUR.last=now;const t=TOUR.t; /* clock capped per frame so a slow first frame (shader compile) does not skip the tour */while(TOUR.i<TOUR.EV.length&&t>=TOUR.EV[TOUR.i][0]){TOUR.EV[TOUR.i][1]();TOUR.i++;}
-  const K=TOUR.K;if(t>=K[K.length-1][0]){endTour(false);return;}let j=0;while(t>K[j+1][0])j++;const a=K[j],b=K[j+1];const u=(t-a[0])/(b[0]-a[0]);const e=j===0?u:u*u*(3-2*u); // constant spin first, eased after
-  const L=(x,y)=>x+(y-x)*e;setCam(L(a[1],b[1]),L(a[2],b[2]),L(a[3],b[3]),a[4].clone().lerp(b[4],e));}
+  if(t>=TOUR.T){endTour(false);return;}setCam(...TOUR.fn(t));}
 const _tick=tick;tick=function(){if(TOUR)tourStep();_tick();};
 tick();
 })();
@@ -878,6 +887,13 @@ window.addEventListener('load',()=>{setTimeout(()=>{
  if(/[?&]build/.test(location.search)||location.hash==='#build')return; // build mode (viewer.html?build or #build): all layers and buttons
  const fb=document.getElementById('bFins');if(fb){const set=()=>{fb.textContent='Twist fins: '+(fb.textContent.match(/\d+°/)||['0°'])[0];};set();fb.addEventListener('click',()=>setTimeout(set,0));}
  document.querySelectorAll('.lbl').forEach(e=>e.style.visibility='hidden');
+ // Thai labels for visitors in Thailand (time zone Asia/Bangkok or a Thai browser language; a static page has no server-side IP lookup)
+ const TH=(()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone==='Asia/Bangkok'||/^th\b/i.test(navigator.language||'');}catch(e){return false;}})();
+ const db=document.getElementById('bDoor'),tb=document.getElementById('bTour');
+ const lab=()=>{const open=db.classList.contains('on'),deg=(fb&&fb.textContent.match(/\d+°/)||['0°'])[0];
+   db.textContent=TH?('ประตู: '+(open?'เปิด':'ปิด')):('Door: '+(open?'open':'closed'));if(fb)fb.textContent=(TH?'บิดครีบ: ':'Twist fins: ')+deg;tb.textContent=TH?'ทัวร์':'Tour';};
+ db.addEventListener('click',()=>setTimeout(lab,0));if(fb)fb.addEventListener('click',()=>setTimeout(lab,0));lab();
+ tb.addEventListener('click',()=>{if(window.__startTour)window.__startTour();setTimeout(lab,0);});
  document.documentElement.classList.remove('prep');if(window.__startTour)window.__startTour();
 },300);});
 </script>
