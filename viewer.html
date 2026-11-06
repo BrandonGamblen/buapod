@@ -743,7 +743,7 @@ const FIN={beta:0,goal:0,last:-1,RING:new THREE.Vector2(0.20,Yv[N]+0.45),WTOP:0.
   FIN.pts=pts;const mat=new THREE.MeshStandardMaterial({color:0xd8c7a3,roughness:1,side:THREE.DoubleSide});
   const edge=new THREE.MeshStandardMaterial({color:0x8a6a45,roughness:0.6});
   for(let j=0;j<16;j++){const ph=Math.PI+(11.25+22.5*j)*Math.PI/180;const door=(j===15);
-    const i0=0;const cnt=n-i0;   // door-gore fin: full length; the opening leaf pushes it back on its spring-loaded top link
+    let i0=0;if(door){while(i0<n-2&&pts[i0].y<CUT+0.06)i0++;}const cnt=n-i0; // left door-seam fin (user 2026-11-05): starts above the door, on top of the head jamb   // door-gore fin: full length; the opening leaf pushes it back on its spring-loaded top link
     const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(new Float32Array(cnt*2*3),3));
     const idx=[];for(let i=0;i<cnt-1;i++){const a=2*i;idx.push(a,a+1,a+2,a+1,a+3,a+2);}geo.setIndex(idx);
     const m=new THREE.Mesh(geo,mat);m.castShadow=true;groups.fins.add(m);pickables.push(m);fins.push({ph,geo,i0,m});}
@@ -855,9 +855,9 @@ let TOUR=null;
 window.__startTour=function(){const fov=camera.fov*Math.PI/180;let d0=size0/(2*Math.tan(fov/2))*0.85;if(camera.aspect<1)d0/=Math.max(camera.aspect,0.62);
   const C=center.clone().add(new THREE.Vector3(0,0.15,0)),DOOR=new THREE.Vector3(0,0.35,-1.25),A0=Math.atan2(0.55,0.78),AD=Math.PI+2*Math.PI;
   const K=[ // t (s), azimuth, elevation, distance, target
-    [0,A0,0.30,d0,C],[6,A0+2*Math.PI,0.30,d0,C],[8.5,A0+2*Math.PI+0.5,1.10,d0*0.95,C],[13.5,A0+2*Math.PI+0.9,1.05,d0*0.95,C],
-    [16.5,AD+0.30,0.38,2.8,DOOR],[22,AD+0.22,0.38,2.8,DOOR],[26,AD+0.35,0.25,d0*1.1,C]]; // door view from above head height so the two figures do not block it
-  const EV=[[7,()=>{FIN.goal=45;}],[11,()=>{FIN.goal=0;}],[17,()=>{if(!doorGoal)document.getElementById('bDoor').click();}],[20,()=>{if(doorGoal)document.getElementById('bDoor').click();}]];
+    [0,A0,0.30,d0,C],[2.4,A0+2*Math.PI,0.30,d0,C],[3.2,A0+2*Math.PI+0.5,1.10,d0*0.95,C],[4.7,A0+2*Math.PI+0.9,1.05,d0*0.95,C],
+    [5.9,AD+0.30,0.38,2.8,DOOR],[8.5,AD+0.22,0.38,2.8,DOOR],[10,AD+0.35,0.25,d0*1.1,C]]; // 10 s (user 2026-11-05) // door view from above head height so the two figures do not block it
+  const EV=[[2.7,()=>{FIN.goal=45;}],[3.9,()=>{FIN.goal=0;}],[5.9,()=>{if(!doorGoal)document.getElementById('bDoor').click();}],[7.5,()=>{if(doorGoal)document.getElementById('bDoor').click();}]];
   TOUR={t:0,last:performance.now(),K,EV,i:0};controls.enabled=false;FIN.goal=0;doorGoal=0;
   const skip=()=>endTour(true);renderer.domElement.addEventListener('pointerdown',skip,{once:true});TOUR.skip=skip;};
 function endTour(skipped){if(!TOUR)return;const K=TOUR.K[TOUR.K.length-1];renderer.domElement.removeEventListener('pointerdown',TOUR.skip);
